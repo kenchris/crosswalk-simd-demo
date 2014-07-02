@@ -33,7 +33,7 @@
 <link rel="import" href="bower_components/core-animated-pages/transitions/slide-up.html">
 <link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
 
-<polymer-element name="my-presenter">
+<polymer-element name="my-presenter" attributes="selected">
   <template>
     <style>
       :host {
@@ -132,9 +132,9 @@
           <core-toolbar id="toolbar">
           <div class="narrow_only" flex>Kitchensink</div>
           </core-toolbar>
-          <core-menu selected="{{ activeSection }}" theme="core-light-theme">
+          <core-menu selected="{{ selected }}" theme="core-light-theme">
           <div style="margin: 15px">
-          <core-selector selected="{{ activeSection }}">
+          <core-selector selected="{{ selected }}">
           <template repeat="{{ s in sections }}">
           <core-item icon="check-circle-outline-blank" label="{{s.title}}" index="{{s.index}}" on-click="{{changeSection}}" horizontal center layout>
           <paper-ripple fit></paper-ripple>
@@ -153,7 +153,7 @@
         <core-icon-button icon="arrow-forward" id="forward_button" on-click="{{ goForward }}"></core-icon-button>
       </core-toolbar>
       <section id="section"></section>
-      <core-animated-pages transitions="cross-fade slide-up" selected="{{ activeSection }}" selectedindex="0" notap id="pages">
+      <core-animated-pages transitions="cross-fade slide-up" selected="{{ selected }}" selected="0" notap id="pages">
         <section id="section1" layout horizontal center center-justified active>
           <core-card id="core_card" style="height: 50%; width: calc(100% - 15px)" cross-fade layout vertical>
             <iframe src="mandelbrot/index.html" style="height: 100%; width: 100%" frameborder=0></iframe>
@@ -185,30 +185,27 @@
           { title: "Donkey", index: 1 },
           { title: "WebGL", index: 2 }
           ];
-        this.activeSection = 0;
+        this.selected = 0;
         this.webGLSource = '';
-
-        self = this;
-        Object.observe(this, function() {
-          // Load ondemand and slightly delayed for animations to finish.
-          if (!self.webGLSource.length && self.sections[self.activeSection].title == "WebGL") {
-            setTimeout(function() { self.webGLSource = "webgl/index.html" }, 200);
-          }
-        });
+      },
+      selectedChanged: function() {
+        // Load ondemand and slightly delayed for animations to finish.
+        if (!this.webGLSource.length && this.sections[this.selected].title == "WebGL")
+          this.async(function() { this.webGLSource = "webgl/index.html" }, null, 200);
       },
       toggleDrawer: function() {
         this.$.core_drawer_panel.togglePanel();
       },
       changeSection: function(e, details, sender) {
         var section = e.target.templateInstance.model.s;
-        this.activeSection = section.index;
+        this.selected = section.index;
         this.$.core_drawer_panel.selected = "main"; // Close drawer if possible.
       },
       goForward: function () {
-        this.activeSection = (this.activeSection + 1) % this.sections.length;
+        this.selected = (this.selected + 1) % this.sections.length;
       },
       goBack: function () {
-        this.activeSection = (this.activeSection <= 0) ? this.sections.length - 1 : this.activeSection - 1;
+        this.selected = (this.selected <= 0) ? this.sections.length - 1 : this.selected - 1;
       }
     });
 
