@@ -1,0 +1,408 @@
+<!--
+Copyright (c) 2014 Intel Corporation. All rights reserved.
+Use of this source code is governed by a MIT-style license that can be
+found in the LICENSE file.
+-->
+<html>
+<head>
+<title>SIMD Demo: Mandelbrot Animation</title>
+<meta name="viewport" content="width=device-width">
+<link href="mandelbrot.css" rel="stylesheet">
+<script src="../bower_components/platform/platform.js"></script>
+  <link rel="import" href="../bower_components/font-roboto/roboto.html">
+  <style>
+  html,body {
+    height: 100%;
+    margin: 0;
+    background-color: #E5E5E5;
+    font-family: 'RobotoDraft', sans-serif;
+  }
+  </style>
+
+</head>
+<body>
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<polymer-element name="mandelbrot-player">
+  <template>
+    <style>
+      :host {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+      }
+      #main {
+        margin: 15px;
+        width: calc(100% - 30px);
+        height: calc(100% - 30px);
+      }
+      #mandel {
+        width: 100%;
+      }
+      #worker_slider {
+        width: 100%;
+      }
+      #worker_counter {
+        padding-left: 12px;
+        color: #a0a0a0;
+      }
+      #action_button {
+        background: #4285f4;
+        color: #fff;
+      }
+      #action_button:hover {
+        background: #2a56c6;
+      }
+      #action_button::shadow #ripple {
+        color: #2a56c6;
+      }
+      paper-toggle-button.blue::shadow paper-radio-button::shadow #ink[checked] {
+        color: #4285f4;
+      }
+      paper-toggle-button.blue::shadow paper-radio-button::shadow #onRadio {
+        background-color: #4285f4;
+      }
+      paper-toggle-button.blue::shadow #toggleBar[checked] {
+        background-color: #4285f4;
+      }
+    </style>
+    <div id="main" vertical layout>
+    <div>
+      <paper-button raisedbutton id="action_button" label="Start" on-click="{{ start }}"></paper-button>
+      <paper-button raisedbutton id="action_button" label="Stop" on-click="{{ stop }}"></paper-button>
+    </div>
+    <br><br>
+    <div justified horizontal layout>
+      <div flex>SIMD acceleration</div>
+      <paper-toggle-button id="simd_button" class="blue" on-change="{{ enableSIMDChange }}"></paper-toggle-button>
+    </div>
+    <br><br>
+    <div>
+      <span>Number of workers</span><span id="worker_counter">{{ workerCount }}</span>
+      <paper-slider id="worker_slider" pin snaps min="1" max="12" step="1" value="1" on-change="{{ workerChange }}"></paper-slider>
+    </div>
+    <br><br>
+    <div vertical center-justified layout>
+      <canvas id="mandel"></canvas>
+    </div>
+    <div  horizontal justified layout>
+      <div>FPS: <span id="fps">0.0</span></div>
+      <div>SIMD: <span id="info">{{ isSIMDEnabled ? "On" : "Off" }}</span></div>
+    </div>
+  </div>
+  <paper-toast id="error" text="SIMD isn't supported on your system.">
+  </template>
+
+  <script>
+
+// Mandelbrot using SIMD and Webworkers
+// Author: Peter Jensen, Intel Corporation
+// Polymerized: Kenneth Christiansen, Intel Corporation
+
+// Web Worker management
+var mandelbrotWorkers = function () {
+
+  // private
+
+  var mWorkers     = [];
+  var mWorkerCode  = "mandelbrot-worker.js";
+  var mWorkerCount = 0;
+
+  function mWorker (wworker, handler, bufferSize) {
+    this.wworker = wworker;
+    this.buffer  = new ArrayBuffer (bufferSize);
+    this.handler = handler;
+  }
+
+  // public
+
+  function addWorker(handler, bufferSize) {
+    var wworker = new Worker (mWorkerCode);
+    var worker  = new mWorker (wworker, handler, bufferSize);
+    mWorkers [mWorkerCount] = worker;
+    wworker.addEventListener('message', handler, false);
+    mWorkerCount++;
+    return mWorkerCount - 1;
+  }
+
+  function sendRequest(worker_index, message) {
+    var w = mWorkers [worker_index].wworker;
+    var b = mWorkers [worker_index].buffer;
+    w.postMessage ({message: message, worker_index: worker_index, buffer: b}, [b]);
+  }
+
+  function restoreBuffer(worker_index, buffer) {
+    mWorkers[worker_index].buffer = buffer;
+  }
+
+  function terminateLastWorker() {
+    var mw = mWorkers [mWorkerCount-1];
+    mw.wworker.postMessage({terminate:true});
+    mWorkerCount--;
+  }
+
+  function terminateAllWorkers() {
+    while (mWorkerCount > 0) {
+      terminateLastWorker ();
+    }
+  }
+
+  function numberOfWorkers() {
+    return mWorkerCount;
+  }
+
+  function bufferOf(worker_index) {
+    return mWorkers[worker_index].buffer;
+  }
+
+  function workerIsActive(worker_index) {
+    return worker_index < mWorkerCount;
+  }
+
+  return {
+    addWorker:           addWorker,
+    sendRequest:         sendRequest,
+    restoreBuffer:       restoreBuffer,
+    terminateLastWorker: terminateLastWorker,
+    terminateAllWorkers: terminateAllWorkers,
+    numberOfWorkers:     numberOfWorkers,
+    bufferOf:            bufferOf,
+    workerIsActive:      workerIsActive
+  };
+
+}();
+
+Polymer('mandelbrot-player', {
+    isAnimating: false,
+    workerCount: 1,
+    maxIterations: 100,
+    workerChange: function(e, target, sender) {
+      this.workerCount = sender.value;
+    },
+    isSIMDEnabled: false,
+    enableSIMDChange: function(e, target, sender) {
+      if (typeof SIMD === "undefined" && sender.checked) {
+        setTimeout(function() { sender.checked = false; }, 100);
+        this.$.error.show();
+        return;
+      }
+
+      this.isSIMDEnabled = sender.checked;
+    },
+    init: function() {
+      var canvas = this.$.mandel;
+      this.ctx = canvas.getContext("2d");
+      this.width = canvas.width;
+      this.height = canvas.height;
+      this.image_data = this.ctx.getImageData(0, 0, this.width, this.height);
+    },
+    clear: function() {
+      for (var i = 0; i < this.image_data.data.length; i = i + 4) {
+        this.image_data.data[i] = 0;
+        this.image_data.data[i + 1] = 0;
+        this.image_data.data[i + 2] = 0;
+        this.image_data.data[i + 3] = 255;
+      }
+    },
+    update: function() {
+      this.ctx.putImageData(this.image_data, 0, 0);
+    },
+    updateFromImageData: function(image_data) {
+      this.image_data.data.set(image_data);
+      this.ctx.putImageData(this.image_data, 0, 0);
+    },
+    setPixel: function(x, y, rgb) {
+      var index = 4 * (x + _width * y);
+      this.image_data.data[index] = rgb[0];
+      this.image_data.data[index + 1] = rgb[1];
+      this.image_data.data[index + 2] = rgb[2];
+      this.image_data.data[index + 3] = 255;
+    },
+    colorMap: function(value) {
+      if (value === this.maxIterations) {
+        return [0, 0, 0];
+      }
+      var rgb = (value * 0xffff / max) * 0xff;
+      var red = rgb & 0xff;
+      var green = (rgb >> 8) & 0xff;
+      var blue = (rgb >> 16) & 0xff;
+      return [red, green, blue];
+    },
+    mapColorAndSetPixel: function(x, y, value) {
+      var rgb, r, g, b;
+      var index = 4 * (x + _width * y);
+      if (value === this.maxIterations) {
+        r = 0;
+        g = 0;
+        b = 0;
+      } else {
+        rgb = (value * 0xffff / this.maxIterations) * 0xff;
+        r = rgb & 0xff;
+        g = (rgb >> 8) & 0xff;
+        b = (rgb >> 16) & 0xff;
+      }
+      this.image_data.data[index] = r;
+      this.image_data.data[index + 1] = g;
+      this.image_data.data[index + 2] = b;
+      this.image_data.data[index + 3] = 255;
+    },
+    start: function() {
+      if (this.isAnimating)
+        return;
+      this.isAnimating = true;
+
+      var scale_start = 1.0;
+      var scale_end   = 0.0005;
+      var xc_start    = -0.5;
+      var yc_start    = 0.0;
+      var xc_end      = 0.0;
+      var yc_end      = 0.75;
+      var steps       = 200.0;
+      var scale_step  = (scale_end - scale_start) / steps;
+      var xc_step     = (xc_end - xc_start) / steps;
+      var yc_step     = (yc_end - yc_start) / steps;
+      var scale       = scale_start;
+      var xc          = xc_start;
+      var yc          = yc_start;
+      var frame_count   = 0;  // number of frames painted to the canvas
+      var request_count = 0;  // number of frames requested from workers
+      var now         = performance.now();
+      var width       = this.width;
+      var height      = this.height;
+      var bufferSize  = width * height * 4;
+      var pending_frames = [];
+
+      self = this;
+
+      // Look for a frame with 'frame_index' in the pending frames.
+      function findFrame(frame_index) {
+        for (var i = 0, n = pending_frames.length; i < n; ++i) {
+          if (pending_frames[i].frame_index === frame_index) {
+            return i;
+          }
+        }
+        return false;
+      }
+
+      // Send a request to a worker to compute a frame.
+      function requestFrame(worker_index) {
+        mandelbrotWorkers.sendRequest(
+          worker_index,
+          { request_count:  request_count,
+            width:          width,
+            height:         height,
+            xc:             xc,
+            yc:             yc,
+            scale:          scale,
+            use_simd:       self.isSIMDEnabled,
+            max_iterations: self.maxIterations});
+        request_count++;
+      }
+
+      // Send the pixels to the canvas, and update the FPS measurement.
+      function paintFrame(buffer) {
+        self.updateFromImageData(buffer);
+        if (frame_count > 0 && ((frame_count % 10)|0) === 0) {
+          var t = performance.now();
+          self.updateFps(10000 / (t - now));
+          now = t;
+        }
+      }
+
+      // Called when a worker has computed a frame.
+      function updateFrame(e) {
+        var worker_index  = e.data.worker_index;
+        var request_count = e.data.message.request_count;
+        mandelbrotWorkers.restoreBuffer (worker_index, e.data.buffer);
+
+        if (!self.isAnimating) {
+          mandelbrotWorkers.terminateAllWorkers ();
+          return;
+        }
+
+        if (mandelbrotWorkers.numberOfWorkers() < self.workerCount) {
+          // Add another worker.
+          var new_worker = mandelbrotWorkers.addWorker (updateFrame, bufferSize);
+          requestFrame (new_worker);
+          advanceFrame ();
+        }
+        if (mandelbrotWorkers.numberOfWorkers() > self.workerCount) {
+          // Terminate a worker.
+          mandelbrotWorkers.terminateLastWorker ();
+        }
+
+        if (request_count !== frame_count) {
+          // frame came early, save it for later and do nothing now
+          pending_frames.push ({worker_index: worker_index, frame_index: request_count});
+          return;
+        }
+
+        var buffer = new Uint8ClampedArray (e.data.buffer);
+        paintFrame (buffer);
+        frame_count++
+
+        if (pending_frames.length > 0) {
+          // There are delayed frames queued up.  Process them.
+          var frame;
+          while ((frame = findFrame (frame_count)) !== false) {
+            var windex = pending_frames[frame].worker_index;
+            pending_frames.splice (frame, 1); // remove the frame from the pending_frames
+            var buffer = new Uint8ClampedArray (mandelbrotWorkers.bufferOf (windex));
+            paintFrame(buffer);
+            frame_count++;
+            if (mandelbrotWorkers.workerIsActive(windex)) {
+              requestFrame(windex);
+              advanceFrame();
+            }
+          }
+        }
+
+        if (mandelbrotWorkers.workerIsActive (e.data.worker_index)) {
+          requestFrame (e.data.worker_index);
+          advanceFrame ();
+        }
+      }
+
+      function advanceFrame () {
+        if (scale < scale_end || scale > scale_start) {
+          scale_step = -scale_step;
+          xc_step = -xc_step;
+          yc_step = -yc_step;
+        }
+        scale += scale_step;
+        xc += xc_step;
+        yc += yc_step;
+      }
+
+      mandelbrotWorkers.addWorker(updateFrame, bufferSize);
+      requestFrame(0);
+      advanceFrame();
+    },
+    stop: function() {
+      this.isAnimating = false;
+    },
+    updateFps: function(value) {
+      this.$.fps.textContent = value.toFixed(1);
+    },
+    ready: function () {
+      this.init();
+      this.clear();
+      this.update();
+      if (typeof SIMD === "undefined") {
+        var att = document.createAttribute("disabled");
+        this.$.simd_button.setAttributeNode(att);
+      }
+    }
+  });
+
+</script>
+
+<mandelbrot-player></mandelbrot-player>
+
+</body>
+</html>
