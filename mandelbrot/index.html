@@ -186,7 +186,7 @@ Polymer('mandelbrot-player', {
     isSIMDEnabled: false,
     enableSIMDChange: function(e, target, sender) {
       if (typeof SIMD === "undefined" && sender.checked) {
-        setTimeout(function() { sender.checked = false; }, 100);
+        this.async(function() { sender.checked = false; }, null, 200);
         this.$.error.show();
         return;
       }
