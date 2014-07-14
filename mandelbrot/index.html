@@ -34,6 +34,35 @@ found in the LICENSE file.
         width: 100%;
         height: 100%;
         box-sizing: border-box;
+        background-color: rgb(250, 250, 250);
+        overflow: hidden;
+      }
+      .title {
+          color: rgb(79, 125, 201);
+          font-size: 24px;
+          font-weight: 400;
+          line-height: 32px;
+          margin-top: 5px;
+          margin-bottom: 20px;
+      }
+      .play-control::before {
+        background: #000 url("play-overlay-button.svg") no-repeat center center;
+        background-size: 72px 72px;
+        content: '';
+        bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        opacity: .5;
+        position:absolute;
+        transition: opacity .2s cubic-bezier(.4,0,.2,1)
+      }
+      .play-control.playing::before{
+        opacity: 0;
+      }
+      #player {
+        cursor:pointer;
+        position:relative;
       }
       #main {
         margin: 15px;
@@ -42,6 +71,7 @@ found in the LICENSE file.
       }
       #mandel {
         width: 100%;
+        height: 100%;
       }
       #worker_slider {
         width: 100%;
@@ -71,10 +101,7 @@ found in the LICENSE file.
       }
     </style>
     <div id="main" vertical layout>
-    <div>
-      <paper-button raisedbutton id="action_button" label="Start" on-click="{{ start }}"></paper-button>
-      <paper-button raisedbutton id="action_button" label="Stop" on-click="{{ stop }}"></paper-button>
-    </div>
+    <h2 class="title">Mandelbrot simulation</h2>
     <br><br>
     <div justified horizontal layout>
       <div flex>SIMD acceleration</div>
@@ -86,7 +113,7 @@ found in the LICENSE file.
       <paper-slider id="worker_slider" pin snaps min="1" max="12" step="1" value="1" on-change="{{ workerChange }}"></paper-slider>
     </div>
     <br><br>
-    <div vertical center-justified layout>
+    <div id="player" class="play-control" vertical center-justified layout on-click="{{ start }}">
       <canvas id="mandel"></canvas>
     </div>
     <div  horizontal justified layout>
@@ -251,9 +278,14 @@ Polymer('mandelbrot-player', {
       this.image_data.data[index + 3] = 255;
     },
     start: function() {
-      if (this.isAnimating)
+      if (this.isAnimating) {
+        this.isAnimating = false;
+        this.$.player.classList.remove("playing");
         return;
+      }
       this.isAnimating = true;
+
+      this.$.player.classList.add("playing");
 
       var scale_start = 1.0;
       var scale_end   = 0.0005;
@@ -381,9 +413,6 @@ Polymer('mandelbrot-player', {
       mandelbrotWorkers.addWorker(updateFrame, bufferSize);
       requestFrame(0);
       advanceFrame();
-    },
-    stop: function() {
-      this.isAnimating = false;
     },
     updateFps: function(value) {
       this.$.fps.textContent = value.toFixed(1);
