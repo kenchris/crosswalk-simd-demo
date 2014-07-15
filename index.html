@@ -64,13 +64,6 @@
         width: 100%;
         height: 100%;
       }
-      #section3 {
-        left: 0px;
-        top: 0px;
-        position: absolute;
-        width: 100%;
-        height: 100%;
-      }
       #core_header_panel {
         left: 420px;
         top: 370px;
@@ -144,7 +137,8 @@
           <div style="margin: 15px">
           <core-selector selected="{{ selected }}">
           <template repeat="{{ s in sections }}">
-          <core-item icon="check-circle-outline-blank" label="{{s.title}}" index="{{s.index}}" on-click="{{changeSection}}" horizontal center layout>
+          <core-item icon="check-circle-outline-blank" label="{{s.title}}"
+              index="{{s.index}}" on-click="{{changeSection}}" horizontal center layout>
           <paper-ripple fit></paper-ripple>
           </core-item>
           </template>
@@ -155,7 +149,8 @@
       <div main>
       <core-header-panel mode="standard" id="core_header_panel1">
       <core-toolbar id="toolbar">
-      <core-icon-button icon="menu" id="menu_button" class="narrow_only" on-click="{{ toggleDrawer }}"></core-icon-button>
+      <core-icon-button icon="menu" id="menu_button" class="narrow_only"
+          on-click="{{ toggleDrawer }}"></core-icon-button>
         <div flex>Kitchensink</div>
         <core-icon-button icon="arrow-back" id="back_button" on-click="{{ goBack }}"></core-icon-button>
         <core-icon-button icon="arrow-forward" id="forward_button" on-click="{{ goForward }}"></core-icon-button>
@@ -168,11 +163,6 @@
           </core-card>
         </section>
         <section id="section2" layout horizontal center center-justified active>
-          <core-card class="card" slide-up cross-fade layout vertical>
-          <div layout horizontal center center-justified flex>I am a card!</div>
-          </core-card>
-        </section>
-        <section id="section3" layout horizontal center center-justified active>
           <core-card class="card" id="webgl_card" cross-fade layout vertical>
             <iframe src="{{ webGLSource }}" style="height: 100%; width: 100%" frameborder=0></iframe>
           </core-card>
@@ -190,8 +180,7 @@
       ready: function () {
         this.sections = [
           { title: "Mandelbrot", index: 0 },
-          { title: "Placeholder", index: 1 },
-          { title: "WebGL", index: 2 }
+          { title: "WebGL", index: 1 }
           ];
         this.selected = 0;
         this.webGLSource = '';
