@@ -31,6 +31,8 @@
 <link rel="import" href="bower_components/core-animated-pages/transitions/cross-fade.html">
 <link rel="import" href="bower_components/core-animated-pages/transitions/slide-down.html">
 <link rel="import" href="bower_components/core-animated-pages/transitions/slide-up.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
 
 <link rel="import" href="mandelbrot/index.html">
@@ -108,10 +110,41 @@
         box-shadow: rgba(0, 0, 0, 0.0980392) 0px 2px 4px, rgba(0, 0, 0, 0.0980392) 0px 0px 3px;
         background-color: rgb(255, 255, 255);
       }
+      .title {
+          color: rgb(79, 125, 201);
+          font-size: 24px;
+          font-weight: 400;
+          line-height: 32px;
+          margin-top: 5px;
+          margin-bottom: 20px;
+      }
+      paper-toggle-button.blue::shadow paper-radio-button::shadow #ink[checked] {
+        color: #4285f4;
+      }
+      paper-toggle-button.blue::shadow paper-radio-button::shadow #onRadio {
+        background-color: #4285f4;
+      }
+      paper-toggle-button.blue::shadow #toggleBar[checked] {
+        background-color: #4285f4;
+      }
+
       #mandelbrot_card {
         max-width: 600px;
         max-height: 500px;
       }
+      #mandelbrot_main {
+        margin: 15px;
+        width: calc(100% - 30px);
+        height: calc(100% - 30px);
+      }
+      #mandelbrot_worker_slider {
+        width: 100%;
+      }
+      #worker_counter {
+        padding-left: 12px;
+        color: #a0a0a0;
+      }
+
       #webgl_card {
         max-width: 600px;
         max-height: 800px;
@@ -159,7 +192,29 @@
       <core-animated-pages transitions="cross-fade slide-up" selected="{{ selected }}" selected="0" notap id="pages">
         <section id="section1" layout horizontal center center-justified active>
           <core-card class="card" id="mandelbrot_card" cross-fade layout vertical>
-            <mandelbrot-player></mandelbrot-player>
+            <div id="mandelbrot_main" vertical layout>
+              <h2 class="title">Mandelbrot simulation</h2>
+              <br><br>
+              <div justified horizontal layout>
+                <div flex>SIMD acceleration</div>
+                <paper-toggle-button id="simd_button" class="blue"
+                     on-change="{{ simdToggleChange }}"></paper-toggle-button>
+              </div>
+              <br><br>
+              <div>
+                <span>Number of workers</span><span id="worker_counter">{{ workerCount }}</span>
+                <paper-slider id="mandelbrot_worker_slider" pin snaps min="1" max="12" step="1"
+                    value="1" on-change="{{ workerChange }}"></paper-slider>
+              </div>
+              <br><br>
+              <div vertical layout>
+                <mandelbrot-player id="player" on-fps-change="{{ fpsChange }}"></mandelbrot-player>
+              </div>
+              <div horizontal justified layout>
+               <div>FPS: <span id="fps">0.0</span></div>
+              </div>
+            </div>
+            <paper-toast id="error" text="SIMD isn't supported on your system.">
           </core-card>
         </section>
         <section id="section2" layout horizontal center center-justified active>
@@ -193,7 +248,7 @@
       toggleDrawer: function() {
         this.$.core_drawer_panel.togglePanel();
       },
-      changeSection: function(e, details, sender) {
+      changeSection: function(e, detail, sender) {
         var section = e.target.templateInstance.model.s;
         this.selected = section.index;
         this.$.core_drawer_panel.selected = "main"; // Close drawer if possible.
@@ -203,6 +258,20 @@
       },
       goBack: function () {
         this.selected = (this.selected <= 0) ? this.sections.length - 1 : this.selected - 1;
+      },
+      simdToggleChange: function(e, detail, sender) {
+        if (sender.checked && typeof SIMD === "undefined") {
+          this.async(function() { sender.checked = false; }, null, 200);
+          this.$.error.show();
+          return;
+        }
+        this.$.player.setAttribute("useSIMD", sender.checked);
+      },
+      fpsChange: function(e, detail, sender) {
+        this.$.fps.textContent = detail.value.toFixed(1);
+      },
+      workerChange: function(e, detail, sender) {
+        this.$.player.setAttribute("workerCount", sender.value);
       }
     });
 

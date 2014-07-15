@@ -1,26 +1,15 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 
-<polymer-element name="mandelbrot-player">
+<polymer-element name="mandelbrot-player" attributes="useSIMD workers">
   <template>
     <style>
       :host {
         width: 100%;
         height: 100%;
         box-sizing: border-box;
-        background-color: rgb(250, 250, 250);
         overflow: hidden;
-      }
-      .title {
-          color: rgb(79, 125, 201);
-          font-size: 24px;
-          font-weight: 400;
-          line-height: 32px;
-          margin-top: 5px;
-          margin-bottom: 20px;
       }
       .play-control::before {
         background: #000 url("play-overlay-button.svg") no-repeat center center;
@@ -37,71 +26,18 @@
       .play-control.playing::before{
         opacity: 0;
       }
+      #mandel {
+        width: 100%;
+      }
       #player {
         cursor:pointer;
         position:relative;
       }
-      #main {
-        margin: 15px;
-        width: calc(100% - 30px);
-        height: calc(100% - 30px);
-      }
-      #mandel {
-        width: 100%;
-        height: 100%;
-      }
-      #worker_slider {
-        width: 100%;
-      }
-      #worker_counter {
-        padding-left: 12px;
-        color: #a0a0a0;
-      }
-      #action_button {
-        background: #4285f4;
-        color: #fff;
-      }
-      #action_button:hover {
-        background: #2a56c6;
-      }
-      #action_button::shadow #ripple {
-        color: #2a56c6;
-      }
-      paper-toggle-button.blue::shadow paper-radio-button::shadow #ink[checked] {
-        color: #4285f4;
-      }
-      paper-toggle-button.blue::shadow paper-radio-button::shadow #onRadio {
-        background-color: #4285f4;
-      }
-      paper-toggle-button.blue::shadow #toggleBar[checked] {
-        background-color: #4285f4;
-      }
     </style>
-    <div id="main" vertical layout>
-    <h2 class="title">Mandelbrot simulation</h2>
-    <br><br>
-    <div justified horizontal layout>
-      <div flex>SIMD acceleration</div>
-      <paper-toggle-button id="simd_button" class="blue"
-        on-change="{{ enableSIMDChange }}"></paper-toggle-button>
-    </div>
-    <br><br>
-    <div>
-      <span>Number of workers</span><span id="worker_counter">{{ workerCount }}</span>
-      <paper-slider id="worker_slider" pin snaps min="1" max="12" step="1"
-        value="1" on-change="{{ workerChange }}"></paper-slider>
-    </div>
-    <br><br>
-    <div id="player" class="play-control" vertical center-justified layout
+    <div id="player" class="play-control"
         on-click="{{ playToggled }}">
-      <canvas id="mandel"></canvas>
+        <div><canvas id="mandel"></canvas></div>
     </div>
-    <div  horizontal justified layout>
-      <div>FPS: <span id="fps">0.0</span></div>
-      <div>SIMD: <span id="info">{{ isSIMDEnabled ? "On" : "Off" }}</span></div>
-    </div>
-  </div>
-  <paper-toast id="error" text="SIMD isn't supported on your system.">
   </template>
 
   <script>
@@ -190,22 +126,16 @@ var workerPool = function() {
 }();
 
 Polymer('mandelbrot-player', {
+    publish: {
+      useSIMD: false,
+      workerCount: 1,
+    },
+    workerCountChanged: function(oldValue, newValue) {
+      this.workerCount = Math.max(1, newValue);
+    },
     isAnimating: false,
     workerCount: 1,
     maxIterations: 100,
-    workerChange: function(e, target, sender) {
-      this.workerCount = sender.value;
-    },
-    isSIMDEnabled: false,
-    enableSIMDChange: function(e, target, sender) {
-      if (typeof SIMD === "undefined" && sender.checked) {
-        this.async(function() { sender.checked = false; }, null, 200);
-        this.$.error.show();
-        return;
-      }
-
-      this.isSIMDEnabled = sender.checked;
-    },
     init: function() {
       var canvas = this.$.mandel;
       this.ctx = canvas.getContext("2d");
@@ -316,7 +246,7 @@ Polymer('mandelbrot-player', {
             xc:             xc,
             yc:             yc,
             scale:          scale,
-            use_simd:       self.isSIMDEnabled,
+            use_simd:       self.useSIMD,
             max_iterations: self.maxIterations});
         request_count++;
       };
@@ -326,7 +256,7 @@ Polymer('mandelbrot-player', {
         self.updateFromImageData(buffer);
         if (frame_count > 0 && ((frame_count % 10)|0) === 0) {
           var t = performance.now();
-          self.updateFps(10000 / (t - now));
+          self.fire("fps-change", { value: 10000 / (t - now) });
           now = t;
         }
       }
@@ -399,9 +329,6 @@ Polymer('mandelbrot-player', {
       workerPool.addWorker(updateFrame, bufferSize);
       requestFrame(0);
       advanceFrame();
-    },
-    updateFps: function(value) {
-      this.$.fps.textContent = value.toFixed(1);
     },
     ready: function () {
       this.init();
