@@ -33,6 +33,8 @@
 <link rel="import" href="bower_components/core-animated-pages/transitions/slide-up.html">
 <link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
 
+<link rel="import" href="mandelbrot/index.html">
+
 <polymer-element name="my-presenter" attributes="selected">
   <template>
     <style>
@@ -162,7 +164,7 @@
       <core-animated-pages transitions="cross-fade slide-up" selected="{{ selected }}" selected="0" notap id="pages">
         <section id="section1" layout horizontal center center-justified active>
           <core-card class="card" id="mandelbrot_card" cross-fade layout vertical>
-            <iframe src="mandelbrot/index.html" style="height: 100%; width: 100%" frameborder=0></iframe>
+            <mandelbrot-player></mandelbrot-player>
           </core-card>
         </section>
         <section id="section2" layout horizontal center center-justified active>

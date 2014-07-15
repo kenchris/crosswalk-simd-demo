@@ -1,25 +1,3 @@
-<!--
-Copyright (c) 2014 Intel Corporation. All rights reserved.
-Use of this source code is governed by a MIT-style license that can be
-found in the LICENSE file.
--->
-<html>
-<head>
-<title>SIMD Demo: Mandelbrot Animation</title>
-<meta name="viewport" content="width=device-width">
-<script src="../bower_components/platform/platform.js"></script>
-  <link rel="import" href="../bower_components/font-roboto/roboto.html">
-  <style>
-  html,body {
-    height: 100%;
-    margin: 0;
-    background-color: #E5E5E5;
-    font-family: 'RobotoDraft', sans-serif;
-  }
-  </style>
-
-</head>
-<body>
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
@@ -30,7 +8,6 @@ found in the LICENSE file.
   <template>
     <style>
       :host {
-        position: absolute;
         width: 100%;
         height: 100%;
         box-sizing: border-box;
@@ -105,15 +82,18 @@ found in the LICENSE file.
     <br><br>
     <div justified horizontal layout>
       <div flex>SIMD acceleration</div>
-      <paper-toggle-button id="simd_button" class="blue" on-change="{{ enableSIMDChange }}"></paper-toggle-button>
+      <paper-toggle-button id="simd_button" class="blue"
+        on-change="{{ enableSIMDChange }}"></paper-toggle-button>
     </div>
     <br><br>
     <div>
       <span>Number of workers</span><span id="worker_counter">{{ workerCount }}</span>
-      <paper-slider id="worker_slider" pin snaps min="1" max="12" step="1" value="1" on-change="{{ workerChange }}"></paper-slider>
+      <paper-slider id="worker_slider" pin snaps min="1" max="12" step="1"
+        value="1" on-change="{{ workerChange }}"></paper-slider>
     </div>
     <br><br>
-    <div id="player" class="play-control" vertical center-justified layout on-click="{{ start }}">
+    <div id="player" class="play-control" vertical center-justified layout
+        on-click="{{ playToggled }}">
       <canvas id="mandel"></canvas>
     </div>
     <div  horizontal justified layout>
@@ -126,20 +106,26 @@ found in the LICENSE file.
 
   <script>
 
-// Mandelbrot using SIMD and Webworkers
+// Mandelbrot using SIMD and web workers
 // Author: Peter Jensen, Intel Corporation
 // Polymerized: Kenneth Christiansen, Intel Corporation
 
+function importBaseURI() {
+   var components = document.currentScript.baseURI.split("/");
+   components.pop();
+   return components.join("/");
+}
+
 // Web Worker management
-var mandelbrotWorkers = function () {
+var workerPool = function() {
 
   // private
 
-  var mWorkers     = [];
-  var mWorkerCode  = "mandelbrot-worker.js";
+  var mWorkers = [];
+  var mWorkerCode = importBaseURI() + "/mandelbrot-worker.js";
   var mWorkerCount = 0;
 
-  function mWorker (wworker, handler, bufferSize) {
+  function mWorker(wworker, handler, bufferSize) {
     this.wworker = wworker;
     this.buffer  = new ArrayBuffer (bufferSize);
     this.handler = handler;
@@ -157,8 +143,8 @@ var mandelbrotWorkers = function () {
   }
 
   function sendRequest(worker_index, message) {
-    var w = mWorkers [worker_index].wworker;
-    var b = mWorkers [worker_index].buffer;
+    var w = mWorkers[worker_index].wworker;
+    var b = mWorkers[worker_index].buffer;
     w.postMessage ({message: message, worker_index: worker_index, buffer: b}, [b]);
   }
 
@@ -277,13 +263,13 @@ Polymer('mandelbrot-player', {
       this.image_data.data[index + 2] = b;
       this.image_data.data[index + 3] = 255;
     },
-    start: function() {
-      if (this.isAnimating) {
-        this.isAnimating = false;
+    playToggled: function() {
+      this.isAnimating = !this.isAnimating;
+
+      if (!this.isAnimating) {
         this.$.player.classList.remove("playing");
         return;
       }
-      this.isAnimating = true;
 
       this.$.player.classList.add("playing");
 
@@ -300,8 +286,8 @@ Polymer('mandelbrot-player', {
       var scale       = scale_start;
       var xc          = xc_start;
       var yc          = yc_start;
-      var frame_count   = 0;  // number of frames painted to the canvas
-      var request_count = 0;  // number of frames requested from workers
+      var frame_count   = 0; // Number of frames painted to the canvas.
+      var request_count = 0; // Number of frames requested from workers.
       var now         = performance.now();
       var width       = this.width;
       var height      = this.height;
@@ -322,7 +308,7 @@ Polymer('mandelbrot-player', {
 
       // Send a request to a worker to compute a frame.
       function requestFrame(worker_index) {
-        mandelbrotWorkers.sendRequest(
+        workerPool.sendRequest(
           worker_index,
           { request_count:  request_count,
             width:          width,
@@ -333,7 +319,7 @@ Polymer('mandelbrot-player', {
             use_simd:       self.isSIMDEnabled,
             max_iterations: self.maxIterations});
         request_count++;
-      }
+      };
 
       // Send the pixels to the canvas, and update the FPS measurement.
       function paintFrame(buffer) {
@@ -349,27 +335,27 @@ Polymer('mandelbrot-player', {
       function updateFrame(e) {
         var worker_index  = e.data.worker_index;
         var request_count = e.data.message.request_count;
-        mandelbrotWorkers.restoreBuffer (worker_index, e.data.buffer);
+        workerPool.restoreBuffer (worker_index, e.data.buffer);
 
         if (!self.isAnimating) {
-          mandelbrotWorkers.terminateAllWorkers ();
+          workerPool.terminateAllWorkers();
           return;
         }
 
-        if (mandelbrotWorkers.numberOfWorkers() < self.workerCount) {
+        if (workerPool.numberOfWorkers() < self.workerCount) {
           // Add another worker.
-          var new_worker = mandelbrotWorkers.addWorker (updateFrame, bufferSize);
-          requestFrame (new_worker);
-          advanceFrame ();
+          var new_worker = workerPool.addWorker (updateFrame, bufferSize);
+          requestFrame(new_worker);
+          advanceFrame();
         }
-        if (mandelbrotWorkers.numberOfWorkers() > self.workerCount) {
+        if (workerPool.numberOfWorkers() > self.workerCount) {
           // Terminate a worker.
-          mandelbrotWorkers.terminateLastWorker ();
+          workerPool.terminateLastWorker();
         }
 
         if (request_count !== frame_count) {
-          // frame came early, save it for later and do nothing now
-          pending_frames.push ({worker_index: worker_index, frame_index: request_count});
+          // Frame came early, save it for later and do nothing now
+          pending_frames.push({worker_index: worker_index, frame_index: request_count});
           return;
         }
 
@@ -380,26 +366,26 @@ Polymer('mandelbrot-player', {
         if (pending_frames.length > 0) {
           // There are delayed frames queued up.  Process them.
           var frame;
-          while ((frame = findFrame (frame_count)) !== false) {
+          while ((frame = findFrame(frame_count)) !== false) {
             var windex = pending_frames[frame].worker_index;
-            pending_frames.splice (frame, 1); // remove the frame from the pending_frames
-            var buffer = new Uint8ClampedArray (mandelbrotWorkers.bufferOf (windex));
+            pending_frames.splice(frame, 1); // Remove the frame from the pending_frames
+            var buffer = new Uint8ClampedArray (workerPool.bufferOf (windex));
             paintFrame(buffer);
             frame_count++;
-            if (mandelbrotWorkers.workerIsActive(windex)) {
+            if (workerPool.workerIsActive(windex)) {
               requestFrame(windex);
               advanceFrame();
             }
           }
         }
 
-        if (mandelbrotWorkers.workerIsActive (e.data.worker_index)) {
-          requestFrame (e.data.worker_index);
-          advanceFrame ();
+        if (workerPool.workerIsActive(e.data.worker_index)) {
+          requestFrame(e.data.worker_index);
+          advanceFrame();
         }
       }
 
-      function advanceFrame () {
+      function advanceFrame() {
         if (scale < scale_end || scale > scale_start) {
           scale_step = -scale_step;
           xc_step = -xc_step;
@@ -410,7 +396,7 @@ Polymer('mandelbrot-player', {
         yc += yc_step;
       }
 
-      mandelbrotWorkers.addWorker(updateFrame, bufferSize);
+      workerPool.addWorker(updateFrame, bufferSize);
       requestFrame(0);
       advanceFrame();
     },
@@ -421,16 +407,7 @@ Polymer('mandelbrot-player', {
       this.init();
       this.clear();
       this.update();
-      if (typeof SIMD === "undefined") {
-        var att = document.createAttribute("disabled");
-        this.$.simd_button.setAttributeNode(att);
-      }
     }
   });
-
 </script>
-
-<mandelbrot-player></mandelbrot-player>
-
-</body>
-</html>
+</polymer-element>
