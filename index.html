@@ -37,6 +37,44 @@
 
 <link rel="import" href="mandelbrot/index.html">
 
+<polymer-element name="my-webgl-card" extends="core-card">
+  <template>
+    <style>
+      #frame {
+        margin: 15px;
+        width: calc(100% - 30px);
+        height: calc(100% - 30px);
+      }
+      #title {
+          color: rgb(79, 125, 201);
+          font-size: 24px;
+          font-weight: 400;
+          line-height: 32px;
+          margin-top: 5px;
+          margin-bottom: 20px;
+      }
+    </style>
+    <div id="frame" vertical layout>
+      <h2 id="title">Rotating box (WebGL)</h2>
+      <br><br>
+      <div vertical layout>
+        <iframe src="{{ webGLSource }}" style="height: 100%; width: 100%" frameborder=0></iframe>
+      </div>
+    </div>
+  </template>
+  <script>
+
+    Polymer('my-webgl-card', {
+      visibleChange: function(visible) {
+        if (!visible)
+          return;
+        this.webGLSource = "webgl/index.html";
+      }
+    });
+
+  </script>
+</polymer-element>
+
 <polymer-element name="my-mandelbrot-card" extends="core-card">
   <template>
     <style>
@@ -89,6 +127,10 @@
 
     Polymer('my-mandelbrot-card', {
       ready: function () {
+      },
+      visibleChange: function(visible) {
+        if (!visible)
+          this.$.player.stop();
       },
       simdToggleChange: function(e, detail, sender) {
         if (sender.checked && typeof SIMD === "undefined") {
@@ -157,7 +199,7 @@
       core-drawer-panel[narrow] .narrow_only {
         display: inline-block;
       }
-      my-mandelbrot-card, core-card {
+      my-mandelbrot-card, my-webgl-card, core-card {
         margin: 15px;
         width: calc(100% - 15px);
         height: calc(100% - 15px);
@@ -201,15 +243,13 @@
         <core-icon-button icon="arrow-forward" id="forward_button"
             on-click="{{ goForward }}"></core-icon-button>
       </core-toolbar>
-      <core-animated-pages transitions="cross-fade slide-up"
+      <core-animated-pages id="sections" transitions="cross-fade slide-up"
           selected="{{ selected }}" selected="0" notap id="pages">
         <section id="section1" layout horizontal center center-justified active>
           <my-mandelbrot-card cross-fade layout vertical></my-mandelbrot-card>
         </section>
         <section id="section2" layout horizontal center center-justified active>
-          <core-card cross-fade layout vertical>
-            <iframe src="{{ webGLSource }}" style="height: 100%; width: 100%" frameborder=0></iframe>
-          </core-card>
+          <my-webgl-card cross-fade layout vertical></my-webgl-card>
         </section>
       </core-animated-pages>
       </core-header-panel>
@@ -221,7 +261,7 @@
   <script>
 
     Polymer('my-presenter', {
-      ready: function () {
+      ready: function() {
         this.sections = [
           { title: "Mandelbrot", index: 0 },
           { title: "WebGL", index: 1 }
@@ -230,9 +270,9 @@
         this.webGLSource = '';
       },
       selectedChanged: function() {
-        // Load ondemand and slightly delayed for animations to finish.
-        if (!this.webGLSource.length && this.sections[this.selected].title == "WebGL")
-          this.async(function() { this.webGLSource = "webgl/index.html" }, null, 200);
+        for (var i = 0; i < this.sections.length; i++)
+          this.$.sections.children[i].children[0].visibleChange(i === this.selected);
+
       },
       toggleDrawer: function() {
         this.$.core_drawer_panel.togglePanel();

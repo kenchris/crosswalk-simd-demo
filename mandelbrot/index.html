@@ -194,13 +194,17 @@ Polymer('mandelbrot-player', {
       this.image_data.data[index + 3] = 255;
     },
     playToggled: function() {
-      this.isAnimating = !this.isAnimating;
-
-      if (!this.isAnimating) {
-        this.$.player.classList.remove("playing");
-        return;
-      }
-
+      if (!this.isAnimating)
+        this.play();
+      else
+        this.stop();
+    },
+    stop: function() {
+      this.isAnimating = false;
+      this.$.player.classList.remove("playing");
+    },
+    play: function() {
+      this.isAnimating = true;
       this.$.player.classList.add("playing");
 
       var scale_start = 1.0;
