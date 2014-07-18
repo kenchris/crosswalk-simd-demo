@@ -30,7 +30,7 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-document.addEventListener ('DOMContentLoaded', function () {
+var rotationbox = function () {
     var camera, scene, renderer;
 
 	var cube, plane;
@@ -64,7 +64,7 @@ document.addEventListener ('DOMContentLoaded', function () {
         // Cube
         var geometry = new THREE.CubeGeometry (200, 200, 200);
         
-        var texture = THREE.ImageUtils.loadTexture ('textures/crosswalk.png');
+        var texture = THREE.ImageUtils.loadTexture ('webgl/textures/crosswalk.png');
         texture.anisotropy = renderer.getMaxAnisotropy ();
         
         var material = new THREE.MeshBasicMaterial ( { map: texture } );
@@ -87,7 +87,7 @@ document.addEventListener ('DOMContentLoaded', function () {
         document.addEventListener ('touchmove', onDocumentTouchMove, false);
 
         // Generic setup
-        
+        onWindowResize();
         window.addEventListener ('resize', onWindowResize, false);
     }
     
@@ -167,4 +167,4 @@ document.addEventListener ('DOMContentLoaded', function () {
             stopAutoRotate ();
         }
     }
-});
+}

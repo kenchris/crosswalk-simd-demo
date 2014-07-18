@@ -46,29 +46,159 @@
         height: calc(100% - 30px);
       }
       #title {
-          color: rgb(79, 125, 201);
-          font-size: 24px;
-          font-weight: 400;
-          line-height: 32px;
-          margin-top: 5px;
-          margin-bottom: 20px;
+        color: rgb(79, 125, 201);
+        font-size: 24px;
+        font-weight: 400;
+        line-height: 32px;
+        margin-top: 5px;
+        margin-bottom: 20px;
+      }
+      #main {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: linear-gradient(
+            to top,
+            #e76840 0%,
+            #f49541 65%,
+            #ed7332 100%);
+      }
+      .background {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0px;
+        left: 0px;
+        opacity: 1;
+        text-align: center;
+      }
+      #sunburst.background {
+        background: radial-gradient(
+            circle at 50% 115%,
+            white 0%,
+            white 9%,
+            rgba(252, 217, 89, 0.8) 17%,
+            rgba(246, 137, 55, 0) 45%);
+      }
+      #small-circle.background {
+        background: radial-gradient(
+            circle at 50% 115%,
+            rgba(250, 196, 72, 0.12) 0%,
+            rgba(250, 196, 72, 0.12) 40%,
+            transparent 40%);
+      }
+      #big-circle.background {
+        background: radial-gradient(
+            farthest-side circle at 40% 115%,
+            rgba(222, 97, 62, 0.2) 0%,
+            rgba(222, 97, 62, 0.3) 90%,
+            transparent 90%);
+      }
+      .tile-overlay {
+        background: url(webgl/textures/bg-tile.png);
+      }
+      canvas {
+        z-index: 10;
+        position: relative;
+      }
+      #logo {
+        position: absolute;
+        width: calc(100% - 60px);
+        height: calc(100% - 60px);
+        margin: 30px;
+        background-image: url(webgl/textures/crosswalk-LOGO-lrg.png);
+        background-repeat: no-repeat;
+        background-position: center 100%;
+        background-size: contain;
       }
     </style>
     <div id="frame" vertical layout>
       <h2 id="title">Rotating box (WebGL)</h2>
-      <br><br>
-      <div vertical layout>
-        <iframe src="{{ webGLSource }}" style="height: 100%; width: 100%" frameborder=0></iframe>
+      <div id="main">
+        <div class='background tile-overlay'></div>
+        <div class='background' id='big-circle'></div>
+        <div class='background' id='small-circle'></div>
+        <div class='background' id='sunburst'></div>
+        <div id='logo'></div>
       </div>
     </div>
   </template>
+  <script src="webgl/threejs/three.min.js"></script>
   <script>
 
     Polymer('my-webgl-card', {
+      ready: function() {
+        this.targetRotation = 0;
+
+        this.width = this.$.main.clientWidth;
+        this.height = this.$.main.clientHeight;
+
+        this.isAnimating = false;
+
+        this.init();
+      },
       visibleChange: function(visible) {
-        if (!visible)
+        this.isAnimating = visible;
+        this.animate();
+      },
+      init: function() {
+        this.renderer = new THREE.WebGLRenderer();
+        this.renderer.setSize(this.width, this.height);
+        this.$.main.appendChild(this.renderer.domElement);
+
+        this.camera = new THREE.PerspectiveCamera (
+            80, this.width / this.height, 1, 1000);
+        this.camera.position.y = 0;
+        this.camera.position.z = 400;
+
+        this.scene = new THREE.Scene();
+
+        var geometry = new THREE.CubeGeometry(200, 200, 200);
+        var texture = THREE.ImageUtils.loadTexture('webgl/textures/crosswalk.png');
+        texture.anisotropy = this.renderer.getMaxAnisotropy();
+
+        var material = new THREE.MeshBasicMaterial ( { map: texture } );
+
+        this.cube = new THREE.Mesh(geometry, material);
+        this.cube.position.y = 0;
+        this.scene.add(this.cube);
+
+        var geometry = new THREE.PlaneGeometry(180, 180);
+        geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+
+        var material = new THREE.MeshBasicMaterial( { color: 0xde613e } );
+
+        this.plane = new THREE.Mesh(geometry, material);
+        this.scene.add(this.plane);
+
+        window.addEventListener('resize', this.geometryChange.bind(this), false);
+      },
+      geometryChange: function() {
+        var width = this.$.main.clientWidth;
+        var height = this.$.main.clientHeight;
+
+        if (width == this.width && height == this.height)
           return;
-        this.webGLSource = "webgl/index.html";
+
+        this.width = width;
+        this.height = height;
+
+        this.camera.aspect = this.width / this.height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(this.width, this.height);
+      },
+      animate: function() {
+        if (!this.isAnimating)
+          return;
+
+        this.geometryChange();
+
+        console.log("called");
+        window.requestAnimationFrame(this.animate.bind(this));
+        this.plane.rotation.y = this.cube.rotation.y += (this.targetRotation - this.cube.rotation.y) * 0.05;
+        this.targetRotation += 0.025;
+        this.renderer.render(this.scene, this.camera);
       }
     });
 
