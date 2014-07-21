@@ -2,6 +2,8 @@
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 
+<link rel="import" href="../play-overlay.html">
+
 <polymer-element name="mandelbrot-player" attributes="useSIMD workers">
   <template>
     <style>
@@ -11,32 +13,14 @@
         box-sizing: border-box;
         overflow: hidden;
       }
-      .play-control::before {
-        background: #000 url("play-overlay-button.svg") no-repeat center center;
-        background-size: 72px 72px;
-        content: '';
-        bottom: 0;
-        top: 0;
-        left: 0;
-        right: 0;
-        opacity: .5;
-        position:absolute;
-        transition: opacity .2s cubic-bezier(.4,0,.2,1)
-      }
-      .play-control.playing::before{
-        opacity: 0;
-      }
       #mandel {
         width: 100%;
       }
-      #player {
-        cursor:pointer;
-        position:relative;
-      }
     </style>
-    <div id="player" class="play-control"
-        on-click="{{ playToggled }}">
-        <div><canvas id="mandel"></canvas></div>
+    <div id="player">
+      <play-overlay on-play="{{ play }}" on-pause="{{ pause }}">
+        <canvas id="mandel"></canvas>
+      </play-overlay>
     </div>
   </template>
 
@@ -193,19 +177,11 @@ Polymer('mandelbrot-player', {
       this.image_data.data[index + 2] = b;
       this.image_data.data[index + 3] = 255;
     },
-    playToggled: function() {
-      if (!this.isAnimating)
-        this.play();
-      else
-        this.stop();
-    },
-    stop: function() {
+    pause: function() {
       this.isAnimating = false;
-      this.$.player.classList.remove("playing");
     },
     play: function() {
       this.isAnimating = true;
-      this.$.player.classList.add("playing");
 
       var scale_start = 1.0;
       var scale_end   = 0.0005;

@@ -35,6 +35,7 @@
 <link rel="import" href="bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
 
+<link rel="import" href="play-overlay.html">
 <link rel="import" href="mandelbrot/index.html">
 
 <polymer-element name="my-webgl-card" extends="core-card">
@@ -53,7 +54,7 @@
         margin-top: 5px;
         margin-bottom: 20px;
       }
-      #main {
+      play-overlay {
         position: relative;
         width: 100%;
         height: 100%;
@@ -112,16 +113,20 @@
         background-position: center 100%;
         background-size: contain;
       }
+      #box {
+        transition: "opacity .2s cubic-bezier(.4,0,.2,1)";
+        opacity: .3;
+      }
     </style>
     <div id="frame" vertical layout>
-      <h2 id="title">Rotating box (WebGL)</h2>
-      <div id="main">
-        <div class='background tile-overlay'></div>
-        <div class='background' id='big-circle'></div>
-        <div class='background' id='small-circle'></div>
-        <div class='background' id='sunburst'></div>
-        <div id='logo'></div>
-      </div>
+        <h2 id="title">Rotating box (WebGL)</h2>
+        <play-overlay id="player" on-play="{{ onPlay }}" on-pause="{{ onPause }}">
+          <div class='background tile-overlay'></div>
+          <div class='background' id='big-circle'></div>
+          <div class='background' id='small-circle'></div>
+          <div class='background' id='sunburst'></div>
+          <div id='logo'></div>
+        </play-overlay>
     </div>
   </template>
   <script src="webgl/threejs/three.min.js"></script>
@@ -131,21 +136,41 @@
       ready: function() {
         this.targetRotation = 0;
 
-        this.width = this.$.main.clientWidth;
-        this.height = this.$.main.clientHeight;
+        this.width = this.$.player.clientWidth;
+        this.height = this.$.player.clientHeight;
 
         this.isAnimating = false;
 
         this.init();
+        window.requestAnimationFrame(this.animate.bind(this));
+      },
+      renderFrame: function() {
+        window.requestAnimationFrame(this.animate.bind(this));
+      },
+      onPlay: function() {
+        if (this.isAnimating)
+          return;
+        this.renderer.domElement.style.opacity = 1;
+        this.isAnimating = true;
+        this.renderFrame();
+      },
+      onPause: function() {
+        if (!this.isAnimating)
+          return;
+        this.renderer.domElement.style.opacity = .3;
+        this.isAnimating = false;
       },
       visibleChange: function(visible) {
-        this.isAnimating = visible;
-        this.animate();
+        if (!visible)
+          this.$.player.pause();
+        else
+          this.renderFrame();
       },
       init: function() {
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(this.width, this.height);
-        this.$.main.appendChild(this.renderer.domElement);
+        this.renderer.domElement.id = "box";
+        this.$.player.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(
             80, this.width / this.height, 1, 1000);
@@ -171,10 +196,12 @@
 
         this.plane = new THREE.Mesh(geometry, material);
         this.scene.add(this.plane);
+
+        window.addEventListener('resize', this.geometryChange.bind(this), false);
       },
       geometryChange: function() {
-        var width = this.$.main.clientWidth;
-        var height = this.$.main.clientHeight;
+        var width = this.$.player.clientWidth;
+        var height = this.$.player.clientHeight;
 
         if (width === this.width && height === this.height)
           return;
@@ -187,16 +214,16 @@
         this.renderer.setSize(this.width, this.height);
       },
       animate: function() {
+        this.geometryChange();
+
+        this.plane.rotation.y = this.cube.rotation.y += (this.targetRotation - this.cube.rotation.y) * 0.05;
+        this.renderer.render(this.scene, this.camera);
+
         if (!this.isAnimating)
           return;
 
-        this.geometryChange();
-
-        console.log("called");
-        window.requestAnimationFrame(this.animate.bind(this));
-        this.plane.rotation.y = this.cube.rotation.y += (this.targetRotation - this.cube.rotation.y) * 0.05;
         this.targetRotation += 0.025;
-        this.renderer.render(this.scene, this.camera);
+        this.renderFrame();
       }
     });
 
@@ -258,7 +285,7 @@
       },
       visibleChange: function(visible) {
         if (!visible)
-          this.$.player.stop();
+          this.$.player.pause();
       },
       simdToggleChange: function(e, detail, sender) {
         if (sender.checked && typeof SIMD === "undefined") {

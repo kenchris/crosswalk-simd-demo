@@ -1,0 +1,65 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+<polymer-element name="play-overlay" attributes="paused">
+  <template>
+    <style>
+      :host {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      #player::before {
+        background: #000 url("mandelbrot/play-overlay-button.svg") no-repeat center center;
+        background-size: 72px 72px;
+        content: '';
+        bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        opacity: .5;
+        position:absolute;
+        transition: opacity .2s cubic-bezier(.4,0,.2,1)
+      }
+      #player.playing::before {
+        opacity: 0;
+      }
+      #player {
+        cursor:pointer;
+        position:relative;
+      }
+    </style>
+    <div id="player" on-tap="{{ _toggled }}">
+      <content></content>
+    </div>
+  </template>
+
+  <script>
+  Polymer('play-overlay', {
+    publish: {
+      paused: true
+    },
+    play: function() {
+      if (!this.paused)
+        return;
+      this.paused = false;
+      this.$.player.classList.add("playing");
+      this.fire('play');
+    },
+    pause: function() {
+      if (this.paused)
+        return;
+      this.paused = true;
+      this.$.player.classList.remove("playing");
+      this.fire('pause');
+    },
+    _toggled: function() {
+      if (this.paused)
+        this.play();
+      else
+        this.pause();
+    }
+  });
+
+  </script>
+<polymer-element>
