@@ -99,7 +99,7 @@
         background: url(webgl/textures/bg-tile.png);
       }
       canvas {
-        z-index: 10;
+        z-index: 0;
         position: relative;
       }
       #logo {
@@ -147,7 +147,7 @@
         this.renderer.setSize(this.width, this.height);
         this.$.main.appendChild(this.renderer.domElement);
 
-        this.camera = new THREE.PerspectiveCamera (
+        this.camera = new THREE.PerspectiveCamera(
             80, this.width / this.height, 1, 1000);
         this.camera.position.y = 0;
         this.camera.position.z = 400;
@@ -171,14 +171,12 @@
 
         this.plane = new THREE.Mesh(geometry, material);
         this.scene.add(this.plane);
-
-        window.addEventListener('resize', this.geometryChange.bind(this), false);
       },
       geometryChange: function() {
         var width = this.$.main.clientWidth;
         var height = this.$.main.clientHeight;
 
-        if (width == this.width && height == this.height)
+        if (width === this.width && height === this.height)
           return;
 
         this.width = width;
