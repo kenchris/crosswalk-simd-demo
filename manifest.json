@@ -1,0 +1,11 @@
+{
+  "name": "XWalk Kitchensink",
+  "version": "0.1",
+  "start_url": "index.html",
+  "app": { "launch": { "local_path": "index.html" } },
+  "display": "standalone",
+  "icons": {
+    "196": "crosswalk.png"
+  },
+  "orientation": "any"
+}

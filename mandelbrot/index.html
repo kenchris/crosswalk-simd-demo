@@ -42,7 +42,7 @@ var workerPool = function() {
   // private
 
   var mWorkers = [];
-  var mWorkerCode = importBaseURI() + "/mandelbrot-worker.js";
+  var mWorkerCode = "mandelbrot/mandelbrot-worker.js";
   var mWorkerCount = 0;
 
   function mWorker(wworker, handler, bufferSize) {
