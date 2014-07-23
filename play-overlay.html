@@ -1,6 +1,6 @@
 <link rel="import" href="bower_components/polymer/polymer.html">
 
-<polymer-element name="play-overlay" attributes="paused">
+<polymer-element name="play-overlay" attributes="paused disabled">
   <template>
     <style>
       :host {
@@ -27,6 +27,7 @@
       #player {
         cursor:pointer;
         position:relative;
+        touch-action: none;
       }
     </style>
     <div id="player" on-tap="{{ _toggled }}">
@@ -37,7 +38,12 @@
   <script>
   Polymer('play-overlay', {
     publish: {
-      paused: true
+      paused: true,
+      disabled: false
+    },
+    disabledChanged: function() {
+      if (this.disabled)
+        this.pause();
     },
     play: function() {
       if (!this.paused)
@@ -53,7 +59,11 @@
       this.$.player.classList.remove("playing");
       this.fire('pause');
     },
-    _toggled: function() {
+    _toggled: function(ev) {
+      ev.stopPropagation();
+      if (this.disabled)
+        return;
+
       if (this.paused)
         this.play();
       else

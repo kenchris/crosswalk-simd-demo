@@ -142,7 +142,7 @@
         this.isAnimating = false;
 
         this.init();
-        window.requestAnimationFrame(this.animate.bind(this));
+        this.renderFrame();
       },
       renderFrame: function() {
         window.requestAnimationFrame(this.animate.bind(this));
@@ -161,9 +161,8 @@
         this.isAnimating = false;
       },
       visibleChange: function(visible) {
-        if (!visible)
-          this.$.player.pause();
-        else
+        this.$.player.disabled = !visible;
+        if (visible)
           this.renderFrame();
       },
       init: function() {
@@ -284,8 +283,7 @@
       ready: function () {
       },
       visibleChange: function(visible) {
-        if (!visible)
-          this.$.player.pause();
+        this.$.player.disabled = !visible;
       },
       simdToggleChange: function(e, detail, sender) {
         if (sender.checked && typeof SIMD === "undefined") {
@@ -427,7 +425,6 @@
       selectedChanged: function() {
         for (var i = 0; i < this.sections.length; i++)
           this.$.sections.children[i].children[0].visibleChange(i === this.selected);
-
       },
       toggleDrawer: function() {
         this.$.core_drawer_panel.togglePanel();

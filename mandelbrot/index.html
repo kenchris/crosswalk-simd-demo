@@ -4,7 +4,7 @@
 
 <link rel="import" href="../play-overlay.html">
 
-<polymer-element name="mandelbrot-player" attributes="useSIMD workers">
+<polymer-element name="mandelbrot-player" attributes="useSIMD workers disabled">
   <template>
     <style>
       :host {
@@ -18,7 +18,7 @@
       }
     </style>
     <div id="player">
-      <play-overlay on-play="{{ play }}" on-pause="{{ pause }}">
+      <play-overlay id="control" on-play="{{ onPlay }}" on-pause="{{ onPause }}">
         <canvas id="mandel"></canvas>
       </play-overlay>
     </div>
@@ -113,6 +113,7 @@ Polymer('mandelbrot-player', {
     publish: {
       useSIMD: false,
       workerCount: 1,
+      disabled: false,
     },
     workerCountChanged: function(oldValue, newValue) {
       this.workerCount = Math.max(1, newValue);
@@ -177,10 +178,19 @@ Polymer('mandelbrot-player', {
       this.image_data.data[index + 2] = b;
       this.image_data.data[index + 3] = 255;
     },
-    pause: function() {
-      this.isAnimating = false;
+    disabledChanged: function() {
+      this.$.control.disabled = this.disabled;
     },
     play: function() {
+      this.$.control.play();
+    },
+    pause: function() {
+      this.$.control.pause();
+    },
+    onPause: function() {
+      this.isAnimating = false;
+    },
+    onPlay: function() {
       this.isAnimating = true;
 
       var scale_start = 1.0;
