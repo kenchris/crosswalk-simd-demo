@@ -20,6 +20,7 @@
     "core-elements": "Polymer/core-elements#~0.3.3",
     "core-animated-pages": "Polymer/core-animated-pages#~0.3.3",
     "font-roboto": "Polymer/font-roboto#~0.3.3",
-    "core-drawer-panel": "Polymer/core-drawer-panel#~0.3.3"
+    "core-drawer-panel": "Polymer/core-drawer-panel#~0.3.3",
+    "threejs": "*"
   }
 }

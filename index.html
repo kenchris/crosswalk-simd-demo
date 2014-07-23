@@ -129,7 +129,7 @@
         </play-overlay>
     </div>
   </template>
-  <script src="webgl/threejs/three.min.js"></script>
+  <script src="bower_components/threejs/build/three.min.js"></script>
   <script>
 
     Polymer('my-webgl-card', {
@@ -167,7 +167,7 @@
           this.renderFrame();
       },
       init: function() {
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.setSize(this.width, this.height);
         this.renderer.domElement.id = "box";
         this.$.player.appendChild(this.renderer.domElement);
@@ -179,7 +179,7 @@
 
         this.scene = new THREE.Scene();
 
-        var geometry = new THREE.CubeGeometry(200, 200, 200);
+        var geometry = new THREE.BoxGeometry(200, 200, 200);
         var texture = THREE.ImageUtils.loadTexture('webgl/textures/crosswalk.png');
         texture.anisotropy = this.renderer.getMaxAnisotropy();
 
