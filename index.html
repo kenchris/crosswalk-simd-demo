@@ -30,6 +30,7 @@
   <link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
   <link rel="import" href="bower_components/paper-toast/paper-toast.html">
   <link rel="import" href="bower_components/paper-item/paper-item.html">
+  <link rel="import" href="bower_components/core-scaffold/metadata.html">
 
   <link rel="import" href="play-overlay.html">
   <link rel="import" href="mandelbrot/mandelbrot-animation.html">
@@ -68,8 +69,6 @@
         left: 0px;
         opacity: 1;
         text-align: center;
-      }
-      .tile-overlay {
         background: url(webgl/textures/bg-tile.png);
       }
       canvas {
@@ -94,7 +93,7 @@
     <div id="frame" vertical layout>
         <h2 id="title">Rotating cube</h2>
         <play-overlay id="player" on-play="{{ onPlay }}" on-pause="{{ onPause }}">
-          <div class='background tile-overlay'></div>
+          <div class='background'></div>
           <div id='logo'></div>
         </play-overlay>
     </div>
@@ -107,7 +106,6 @@
         this.targetRotation = 0;
 
         this.width = this.$.player.clientWidth;
-        this.height = this.$.player.clientHeight;
 
         this.isAnimating = false;
 
@@ -137,12 +135,12 @@
       },
       init: function() {
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
-        this.renderer.setSize(this.width, this.height);
+        this.renderer.setSize(this.width, this.width);
         this.renderer.domElement.id = "box";
         this.$.player.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(
-            80, this.width / this.height, 1, 1000);
+            80, 1, 1, 1000);
         this.camera.position.y = 0;
         this.camera.position.z = 400;
 
@@ -170,17 +168,15 @@
       },
       geometryChange: function() {
         var width = this.$.player.clientWidth;
-        var height = this.$.player.clientHeight;
 
-        if (width === this.width && height === this.height)
+        if (width === this.width)
           return;
 
         this.width = width;
-        this.height = height;
 
-        this.camera.aspect = this.width / this.height;
+        this.camera.aspect = 1;
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(this.width, this.height);
+        this.renderer.setSize(this.width, this.width);
       },
       animate: function() {
         this.geometryChange();
@@ -334,12 +330,12 @@
       core-drawer-panel[narrow] .narrow_only {
         display: inline-block;
       }
-      my-mandelbrot-card, my-webgl-card, core-card {
-        margin: 15px;
-        width: calc(100% - 15px);
-        height: calc(100% - 15px);
+      my-webgl-card, my-mandelbrot-card {
+        display: inline-block;
+        margin: 10px;
+        width: calc(100% - 20px);
         max-width: 600px;
-        max-height: 500px;
+        overflow: auto;
         border-top-left-radius: 2px;
         border-top-right-radius: 2px;
         border-bottom-right-radius: 2px;
@@ -381,10 +377,10 @@
       <div layout horizontal center-center fit>
       <core-animated-pages selected="{{route}}" valueattr="hash"
                         transitions="cross-fade" id="pages">
-        <section hash="mandelbrot" layout vertical center-center active>
+        <section hash="mandelbrot" layout vertical center active>
           <my-mandelbrot-card cross-fade></my-mandelbrot-card>
         </section>
-        <section hash="webgl" layout vertical center-center active>
+        <section hash="webgl" layout vertical center active>
           <my-webgl-card cross-fade></my-webgl-card>
         </section>
         </core-animated-pages>
