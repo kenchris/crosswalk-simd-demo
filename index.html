@@ -1,43 +1,48 @@
+<!DOCTYPE html>
 <html>
 <head>
   <title>Crosswalk Kitchensink</title>
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" sizes="196x196" href="crosswalk.png">
+  <link rel="icon" sizes="192x192" href="icon192.png">
+  <link rel="icon" sizes="144x144" href="icon144.png">
+  <link rel="icon" sizes="96x96" href="icon96.png">
+  <link rel="icon" sizes="72x72" href="icon72.png">
+  <link rel="icon" sizes="48x48" href="icon48.png">
   <link rel="manifest" href="manifest.json">
+
   <script src="bower_components/platform/platform.js"></script>
+
   <link rel="import" href="bower_components/font-roboto/roboto.html">
+  <link rel="import" href="bower_components/flatiron-director/flatiron-director.html">
+
+  <link rel="import" href="bower_components/polymer/polymer.html">
+  <link rel="import" href="bower_components/core-drawer-panel/core-drawer-panel.html">
+  <link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+  <link rel="import" href="bower_components/core-item/core-item.html">
+  <link rel="import" href="bower_components/core-menu/core-menu.html">
+  <link rel="import" href="bower_components/core-toolbar/core-toolbar.html">
+  <link rel="import" href="bower_components/core-header-panel/core-header-panel.html">
+  <link rel="import" href="bower_components/core-animated-pages/core-animated-pages.html">
+  <link rel="import" href="bower_components/core-animated-pages/transitions/cross-fade.html">
+  <link rel="import" href="bower_components/core-animated-pages/transitions/slide-down.html">
+  <link rel="import" href="bower_components/core-animated-pages/transitions/slide-up.html">
+  <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+  <link rel="import" href="bower_components/paper-toast/paper-toast.html">
+  <link rel="import" href="bower_components/paper-item/paper-item.html">
+
+  <link rel="import" href="play-overlay.html">
+  <link rel="import" href="mandelbrot/index.html">
+
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
+    body {
       background-color: #E5E5E5;
       font-family: 'RobotoDraft', sans-serif;
+      font-weight: 300;
     }
   </style>
 </head>
-<body>
-
-    <!-- ONLY WORKS WITH BETA CHROME and derived browsers! -->
-
-<!-- main ui -->
-
-<link rel="import" href="bower_components/polymer/polymer.html">
-<link rel="import" href="bower_components/core-drawer-panel/core-drawer-panel.html">
-<link rel="import" href="bower_components/core-icon-button/core-icon-button.html">
-<link rel="import" href="bower_components/core-item/core-item.html">
-<link rel="import" href="bower_components/core-toolbar/core-toolbar.html">
-<link rel="import" href="bower_components/core-header-panel/core-header-panel.html">
-<link rel="import" href="bower_components/core-animated-pages/core-animated-pages.html">
-<link rel="import" href="bower_components/core-animated-pages/transitions/cross-fade.html">
-<link rel="import" href="bower_components/core-animated-pages/transitions/slide-down.html">
-<link rel="import" href="bower_components/core-animated-pages/transitions/slide-up.html">
-<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="bower_components/paper-toast/paper-toast.html">
-<link rel="import" href="bower_components/paper-ripple/paper-ripple.html">
-
-<link rel="import" href="play-overlay.html">
-<link rel="import" href="mandelbrot/index.html">
+<body unresolved fullbleed>
 
 <polymer-element name="my-webgl-card" extends="core-card">
   <template>
@@ -368,44 +373,45 @@
       }
     </style>
 
-      <core-drawer-panel id="core_drawer_panel">
+      <flatiron-director route="{{route}}" autoHash></flatiron-director>
+
+      <core-drawer-panel id="drawer">
       <div drawer>
           <core-toolbar id="toolbar">
-          <div class="narrow_only" flex>Kitchensink</div>
+          <div flex>Kitchensink</div>
           </core-toolbar>
-          <core-menu selected="{{ selected }}" theme="core-light-theme">
-          <div style="margin: 15px">
-          <core-selector selected="{{ selected }}">
-          <template repeat="{{ s in sections }}">
-          <core-item icon="check-circle-outline-blank" label="{{s.title}}"
-              index="{{s.index}}" on-click="{{changeSection}}" horizontal center layout>
-          <paper-ripple fit></paper-ripple>
-          </core-item>
-          </template>
-          </core-selector>
-          </div>
+          <core-menu valueattr="hash" selected="{{route}}" on-core-select="{{menuItemSelected}}">
+            <template repeat="{{page in pages}}">
+              <paper-item icon="label{{route != page.hash ? '-outline' : ''}}"
+                         label="{{page.name}}" hash="{{page.hash}}">
+                <a href="#{{page.hash}}"></a>
+              </paper-item>
+            </template>
           </core-menu>
       </div>
       <div main>
       <core-header-panel mode="standard">
+
       <core-toolbar>
-      <core-icon-button icon="menu" id="menu_button" class="narrow_only"
-          on-click="{{ toggleDrawer }}"></core-icon-button>
-        <div flex>Kitchensink</div>
-        <core-icon-button icon="arrow-back" id="back_button"
-            on-click="{{ goBack }}"></core-icon-button>
-        <core-icon-button icon="arrow-forward" id="forward_button"
-            on-click="{{ goForward }}"></core-icon-button>
+        <paper-icon-button icon="menu" id="menu_button" class="narrow_only"
+                      on-click="{{toggleDrawer}}"></paper-icon-button>
+        <div flex>{{pages[routeIndex].name}}</div>
+        <paper-icon-button icon="arrow-back" on-click="{{goBack}}"
+                       disabled="{{route === pages[0].hash}}"></paper-icon-button>
+        <paper-icon-button icon="arrow-forward" on-click="{{goForward}}"
+                       disabled="{{route === pages[pages.length - 1].hash}}"></paper-icon-button>
       </core-toolbar>
-      <core-animated-pages id="sections" transitions="cross-fade slide-up"
-          selected="{{ selected }}" selected="0" notap id="pages">
-        <section id="section1" layout horizontal center center-justified active>
+
+      <core-animated-pages selected="{{route}}" valueattr="hash"
+                        transitions="cross-fade slide-up" id="pages">
+        <section hash="mandelbrot" layout horizontal center-center active>
           <my-mandelbrot-card cross-fade layout vertical></my-mandelbrot-card>
         </section>
-        <section id="section2" layout horizontal center center-justified active>
+        <section hash="webgl" layout horizontal center-center active>
           <my-webgl-card cross-fade layout vertical></my-webgl-card>
         </section>
       </core-animated-pages>
+
       </core-header-panel>
   </div>
   </core-drawer-panel>
@@ -416,30 +422,37 @@
 
     Polymer('my-presenter', {
       ready: function() {
-        this.sections = [
-          { title: "Mandelbrot", index: 0 },
-          { title: "WebGL", index: 1 }
+        this.pages = [
+          { name: 'Mandelbrot', hash: 'mandelbrot' },
+          { name: 'WebGL', hash: 'webgl' }
           ];
-        this.selected = 0;
+        this.routeIndex = 0;
+        this.route = this.pages[this.routeIndex].hash;
         this.webGLSource = '';
       },
-      selectedChanged: function() {
-        for (var i = 0; i < this.sections.length; i++)
-          this.$.sections.children[i].children[0].visibleChange(i === this.selected);
+      routeChanged: function(attrName, oldVal, newVal) {
+        for (var i = 0; i < this.pages.length; i++) {
+          var visible = false;
+          if (this.pages[i].hash === this.route) {
+            this.routeIndex = i;
+            visible = true;
+          }
+
+          var page = this.$.pages.children[i];
+          page.children[0].visibleChange(visible);
+        }
       },
       toggleDrawer: function() {
-        this.$.core_drawer_panel.togglePanel();
+        this.$.drawer.togglePanel();
       },
-      changeSection: function(e, detail, sender) {
-        var section = e.target.templateInstance.model.s;
-        this.selected = section.index;
-        this.$.core_drawer_panel.selected = "main"; // Close drawer if possible.
+      menuItemSelected: function(e, detail, sender) {
+        this.$.drawer.closeDrawer();
       },
       goForward: function () {
-        this.selected = (this.selected + 1) % this.sections.length;
+        this.$.pages.selectNext();
       },
       goBack: function () {
-        this.selected = (this.selected <= 0) ? this.sections.length - 1 : this.selected - 1;
+        this.$.pages.selectPrevious();
       },
     });
 

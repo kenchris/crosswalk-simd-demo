@@ -4,7 +4,11 @@
   "start_url": "index.html",
   "display": "standalone",
   "icons": {
-    "196": "crosswalk.png"
+    "192": "icon192.png"
+    "144": "icon144.png"
+    "96": "icon96.png"
+    "72": "icon72.png"
+    "48": "icon48.png"
   },
   "orientation": "any"
 }
