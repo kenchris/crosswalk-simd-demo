@@ -158,7 +158,7 @@
         this.cube.position.y = 0;
         this.scene.add(this.cube);
 
-        var geometry = new THREE.PlaneGeometry(180, 180);
+        var geometry = new THREE.PlaneBufferGeometry(180, 180);
         geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
 
         var material = new THREE.MeshBasicMaterial( { color: 0xde613e } );
