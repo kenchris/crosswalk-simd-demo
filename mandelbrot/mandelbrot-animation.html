@@ -1,6 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
-<link rel="import" href="../bower_components/paper-button/paper-button.html">
 
 <link rel="import" href="../play-overlay.html">
 
@@ -116,9 +114,6 @@ Polymer('mandelbrot-animation', {
       useSIMD: false,
       workerCount: 1,
       disabled: false,
-    },
-    workerCountChanged: function(oldValue, newValue) {
-      console.log("new " + this.workerCount);
     },
     isAnimating: false,
     workerCount: 1,
