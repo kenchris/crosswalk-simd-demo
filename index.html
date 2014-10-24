@@ -60,17 +60,6 @@
         margin-top: 5px;
         margin-bottom: 20px;
       }
-      play-overlay {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: linear-gradient(
-            to top,
-            #e76840 0%,
-            #f49541 65%,
-            #ed7332 100%);
-      }
       .background {
         position: absolute;
         width: 100%;
@@ -79,28 +68,6 @@
         left: 0px;
         opacity: 1;
         text-align: center;
-      }
-      #sunburst.background {
-        background: radial-gradient(
-            circle at 50% 115%,
-            white 0%,
-            white 9%,
-            rgba(252, 217, 89, 0.8) 17%,
-            rgba(246, 137, 55, 0) 45%);
-      }
-      #small-circle.background {
-        background: radial-gradient(
-            circle at 50% 115%,
-            rgba(250, 196, 72, 0.12) 0%,
-            rgba(250, 196, 72, 0.12) 40%,
-            transparent 40%);
-      }
-      #big-circle.background {
-        background: radial-gradient(
-            farthest-side circle at 40% 115%,
-            rgba(222, 97, 62, 0.2) 0%,
-            rgba(222, 97, 62, 0.3) 90%,
-            transparent 90%);
       }
       .tile-overlay {
         background: url(webgl/textures/bg-tile.png);
@@ -114,7 +81,7 @@
         width: calc(100% - 60px);
         height: calc(100% - 60px);
         margin: 30px;
-        background-image: url(webgl/textures/crosswalk-LOGO-lrg.png);
+        background-image: url(webgl/textures/CW_Horiz_G_RGB_LG.png);
         background-repeat: no-repeat;
         background-position: center 100%;
         background-size: contain;
@@ -125,12 +92,9 @@
       }
     </style>
     <div id="frame" vertical layout>
-        <h2 id="title">Rotating box (WebGL)</h2>
+        <h2 id="title">Rotating cube</h2>
         <play-overlay id="player" on-play="{{ onPlay }}" on-pause="{{ onPause }}">
           <div class='background tile-overlay'></div>
-          <div class='background' id='big-circle'></div>
-          <div class='background' id='small-circle'></div>
-          <div class='background' id='sunburst'></div>
           <div id='logo'></div>
         </play-overlay>
     </div>
@@ -426,20 +390,17 @@
           { name: 'Mandelbrot', hash: 'mandelbrot' },
           { name: 'WebGL', hash: 'webgl' }
           ];
-        this.routeIndex = 0;
-        this.route = this.pages[this.routeIndex].hash;
+        this.route = this.route || this.pages[0].hash;
         this.webGLSource = '';
       },
-      routeChanged: function(attrName, oldVal, newVal) {
+      routeChanged: function(oldRoute, newRoute) {
         for (var i = 0; i < this.pages.length; i++) {
-          var visible = false;
-          if (this.pages[i].hash === this.route) {
+          if (this.pages[i].hash === newRoute) {
             this.routeIndex = i;
-            visible = true;
+            this.$.pages.children[i].children[0].visibleChange(true);
+          } else if (this.pages[i].hash === oldRoute) {
+            this.$.pages.children[i].children[0].visibleChange(false);
           }
-
-          var page = this.$.pages.children[i];
-          page.children[0].visibleChange(visible);
         }
       },
       toggleDrawer: function() {
