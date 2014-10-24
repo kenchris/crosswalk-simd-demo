@@ -143,41 +143,6 @@ Polymer('mandelbrot-player', {
       this.image_data.data.set(image_data);
       this.ctx.putImageData(this.image_data, 0, 0);
     },
-    setPixel: function(x, y, rgb) {
-      var index = 4 * (x + _width * y);
-      this.image_data.data[index] = rgb[0];
-      this.image_data.data[index + 1] = rgb[1];
-      this.image_data.data[index + 2] = rgb[2];
-      this.image_data.data[index + 3] = 255;
-    },
-    colorMap: function(value) {
-      if (value === this.maxIterations) {
-        return [0, 0, 0];
-      }
-      var rgb = (value * 0xffff / max) * 0xff;
-      var red = rgb & 0xff;
-      var green = (rgb >> 8) & 0xff;
-      var blue = (rgb >> 16) & 0xff;
-      return [red, green, blue];
-    },
-    mapColorAndSetPixel: function(x, y, value) {
-      var rgb, r, g, b;
-      var index = 4 * (x + _width * y);
-      if (value === this.maxIterations) {
-        r = 0;
-        g = 0;
-        b = 0;
-      } else {
-        rgb = (value * 0xffff / this.maxIterations) * 0xff;
-        r = rgb & 0xff;
-        g = (rgb >> 8) & 0xff;
-        b = (rgb >> 16) & 0xff;
-      }
-      this.image_data.data[index] = r;
-      this.image_data.data[index + 1] = g;
-      this.image_data.data[index + 2] = b;
-      this.image_data.data[index + 3] = 255;
-    },
     disabledChanged: function() {
       this.$.control.disabled = this.disabled;
     },
