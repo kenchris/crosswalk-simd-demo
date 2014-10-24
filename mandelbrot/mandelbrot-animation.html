@@ -4,7 +4,7 @@
 
 <link rel="import" href="../play-overlay.html">
 
-<polymer-element name="mandelbrot-player" attributes="useSIMD workers disabled">
+<polymer-element name="mandelbrot-animation" attributes="useSIMD workerCount disabled">
   <template>
     <style>
       :host {
@@ -41,59 +41,61 @@ var workerPool = function() {
 
   // private
 
-  var mWorkers = [];
-  var mWorkerCode = "mandelbrot/mandelbrot-worker.js";
-  var mWorkerCount = 0;
+  var activeWorkers = [];
+  var activeWorkersCount = 0;
 
-  function mWorker(wworker, handler, bufferSize) {
-    this.wworker = wworker;
-    this.buffer  = new ArrayBuffer (bufferSize);
-    this.handler = handler;
+  function MandelbrotWorker(handler, bufferSize) {
+    this.worker = new Worker("mandelbrot/mandelbrot-worker.js");
+    this.buffer  = new ArrayBuffer(bufferSize);
+    this.worker.addEventListener('message', handler, false);
+    this.postMessage = function(message, transferList) {
+      this.worker.postMessage(message, transferList);
+    }
   }
 
   // public
 
   function addWorker(handler, bufferSize) {
-    var wworker = new Worker (mWorkerCode);
-    var worker  = new mWorker (wworker, handler, bufferSize);
-    mWorkers [mWorkerCount] = worker;
-    wworker.addEventListener('message', handler, false);
-    mWorkerCount++;
-    return mWorkerCount - 1;
+    activeWorkers[activeWorkersCount] = new MandelbrotWorker(handler, bufferSize);
+    activeWorkersCount++;
+    return activeWorkersCount - 1;
   }
 
-  function sendRequest(worker_index, message) {
-    var w = mWorkers[worker_index].wworker;
-    var b = mWorkers[worker_index].buffer;
-    w.postMessage ({message: message, worker_index: worker_index, buffer: b}, [b]);
+  function sendRequest(index, message) {
+    var worker = activeWorkers[index];
+    worker.postMessage(
+      {
+        message: message,
+        worker_index: index,
+        buffer: worker.buffer
+      }, [worker.buffer]);
   }
 
-  function restoreBuffer(worker_index, buffer) {
-    mWorkers[worker_index].buffer = buffer;
+  function restoreBuffer(index, buffer) {
+    activeWorkers[index].buffer = buffer;
   }
 
   function terminateLastWorker() {
-    var mw = mWorkers [mWorkerCount-1];
-    mw.wworker.postMessage({terminate:true});
-    mWorkerCount--;
+    var lastWorker = activeWorkers[activeWorkersCount - 1];
+    lastWorker.postMessage({terminate: true});
+    activeWorkersCount--;
   }
 
   function terminateAllWorkers() {
-    while (mWorkerCount > 0) {
-      terminateLastWorker ();
-    }
+    while (activeWorkersCount > 0)
+      terminateLastWorker();
   }
 
   function numberOfWorkers() {
-    return mWorkerCount;
+    return activeWorkersCount;
   }
 
-  function bufferOf(worker_index) {
-    return mWorkers[worker_index].buffer;
+  function bufferOf(index) {
+    return activeWorkers[index].buffer;
   }
 
-  function workerIsActive(worker_index) {
-    return worker_index < mWorkerCount;
+  function workerIsActive(index) {
+    return index < activeWorkersCount;
   }
 
   return {
@@ -109,14 +111,14 @@ var workerPool = function() {
 
 }();
 
-Polymer('mandelbrot-player', {
+Polymer('mandelbrot-animation', {
     publish: {
       useSIMD: false,
       workerCount: 1,
       disabled: false,
     },
     workerCountChanged: function(oldValue, newValue) {
-      this.workerCount = Math.max(1, newValue);
+      console.log("new " + this.workerCount);
     },
     isAnimating: false,
     workerCount: 1,
@@ -154,6 +156,7 @@ Polymer('mandelbrot-player', {
     },
     onPause: function() {
       this.isAnimating = false;
+      self.fire("fps-change", { value: 0 });
     },
     onPlay: function() {
       this.isAnimating = true;
@@ -192,17 +195,19 @@ Polymer('mandelbrot-player', {
       }
 
       // Send a request to a worker to compute a frame.
-      function requestFrame(worker_index) {
+      function requestFrame(index) {
         workerPool.sendRequest(
-          worker_index,
-          { request_count:  request_count,
+          index,
+          {
+            request_count:  request_count,
             width:          width,
             height:         height,
             xc:             xc,
             yc:             yc,
             scale:          scale,
             use_simd:       self.useSIMD,
-            max_iterations: self.maxIterations});
+            max_iterations: self.maxIterations
+          });
         request_count++;
       };
 
@@ -220,21 +225,20 @@ Polymer('mandelbrot-player', {
       function updateFrame(e) {
         var worker_index  = e.data.worker_index;
         var request_count = e.data.message.request_count;
-        workerPool.restoreBuffer (worker_index, e.data.buffer);
+        workerPool.restoreBuffer(worker_index, e.data.buffer);
 
         if (!self.isAnimating) {
           workerPool.terminateAllWorkers();
           return;
-        }
+      }
 
         if (workerPool.numberOfWorkers() < self.workerCount) {
-          // Add another worker.
-          var new_worker = workerPool.addWorker (updateFrame, bufferSize);
-          requestFrame(new_worker);
+          var worker = workerPool.addWorker(updateFrame, bufferSize);
+          requestFrame(worker);
           advanceFrame();
-        }
+      }
+
         if (workerPool.numberOfWorkers() > self.workerCount) {
-          // Terminate a worker.
           workerPool.terminateLastWorker();
         }
 
@@ -254,7 +258,7 @@ Polymer('mandelbrot-player', {
           while ((frame = findFrame(frame_count)) !== false) {
             var windex = pending_frames[frame].worker_index;
             pending_frames.splice(frame, 1); // Remove the frame from the pending_frames
-            var buffer = new Uint8ClampedArray (workerPool.bufferOf (windex));
+            var buffer = new Uint8ClampedArray (workerPool.bufferOf(windex));
             paintFrame(buffer);
             frame_count++;
             if (workerPool.workerIsActive(windex)) {

@@ -32,7 +32,7 @@
   <link rel="import" href="bower_components/paper-item/paper-item.html">
 
   <link rel="import" href="play-overlay.html">
-  <link rel="import" href="mandelbrot/index.html">
+  <link rel="import" href="mandelbrot/mandelbrot-animation.html">
 
   <style>
     body {
@@ -233,16 +233,16 @@
       </div>
       <br><br>
       <div>
-        <span>Number of workers</span><span id="counter">{{ workerCount }}</span>
-        <paper-slider pin snaps min="1" max="12" step="1"
-            value="1" on-change="{{ workerChange }}"></paper-slider>
+        <span>Number of workers</span><span id="counter">{{workerCount}}</span>
+        <paper-slider pin snaps min="1" max="{{maxWorkers}}" step="1"
+            value="1" on-core-change="{{ workerChange }}"></paper-slider>
       </div>
       <br><br>
       <div vertical layout>
-        <mandelbrot-player id="player" on-fps-change="{{ fpsChange }}"></mandelbrot-player>
+        <mandelbrot-animation id="player" on-fps-change="{{fpsChange}}"></mandelbrot-player>
       </div>
       <div horizontal justified layout>
-        <div>FPS: <span id="fps">N/A</span></div>
+          <div>FPS: <span id="fps">0</span> (average: <span id="average">0</span>)</div>
       </div>
     </div>
     <paper-toast id="error" text="SIMD isn't supported on your system.">
@@ -250,7 +250,14 @@
   <script>
 
     Polymer('my-mandelbrot-card', {
-      ready: function () {
+      ready: function() {
+        this.maxWorkers = navigator.hardwareConcurrency;
+        this.resetFpsCount();
+        this.workerCount = 1;
+      },
+      resetFpsCount: function() {
+        this.measurements = 0;
+        this.fpsTotal = 0;
       },
       visibleChange: function(visible) {
         this.$.player.disabled = !visible;
@@ -261,13 +268,18 @@
           this.$.error.show();
           return;
         }
+        this.resetFpsCount();
         this.$.player.setAttribute("useSIMD", sender.checked);
       },
       fpsChange: function(e, detail, sender) {
-        this.$.fps.textContent = detail.value.toFixed(1);
+        this.fpsTotal += detail.value;
+        this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)
+        this.$.fps.textContent = detail.value.toFixed(0);
       },
       workerChange: function(e, detail, sender) {
-        this.$.player.setAttribute("workerCount", sender.value);
+        this.resetFpsCount();
+        this.workerCount = sender.value;
+        this.$.player.setAttribute("workerCount", this.workerCount);
       }
     });
 
@@ -366,15 +378,17 @@
                        disabled="{{route === pages[pages.length - 1].hash}}"></paper-icon-button>
       </core-toolbar>
 
+      <div layout horizontal center-center fit>
       <core-animated-pages selected="{{route}}" valueattr="hash"
-                        transitions="cross-fade slide-up" id="pages">
-        <section hash="mandelbrot" layout horizontal center-center active>
-          <my-mandelbrot-card cross-fade layout vertical></my-mandelbrot-card>
+                        transitions="cross-fade" id="pages">
+        <section hash="mandelbrot" layout vertical center-center active>
+          <my-mandelbrot-card cross-fade></my-mandelbrot-card>
         </section>
-        <section hash="webgl" layout horizontal center-center active>
-          <my-webgl-card cross-fade layout vertical></my-webgl-card>
+        <section hash="webgl" layout vertical center-center active>
+          <my-webgl-card cross-fade></my-webgl-card>
         </section>
-      </core-animated-pages>
+        </core-animated-pages>
+      </div>
 
       </core-header-panel>
   </div>
