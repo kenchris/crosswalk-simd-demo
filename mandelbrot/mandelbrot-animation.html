@@ -6,17 +6,17 @@
   <template>
     <style>
       :host {
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
+        width: auto;
+        height: auto;
         overflow: hidden;
       }
       #mandel {
         width: 100%;
+        display: block;
       }
     </style>
     <div id="player">
-      <play-overlay id="control" on-play="{{ onPlay }}" on-pause="{{ onPause }}">
+      <play-overlay id="control" on-play="{{onPlay}}" on-pause="{{onPause}}">
         <canvas id="mandel"></canvas>
       </play-overlay>
     </div>
@@ -119,6 +119,9 @@ Polymer('mandelbrot-animation', {
     workerCount: 1,
     maxIterations: 100,
     init: function() {
+      // Workaround: Setting it in style doesn't work for some reason.
+      this.$.mandel.style = "display: block";
+
       var canvas = this.$.mandel;
       this.ctx = canvas.getContext("2d");
       this.width = canvas.width;

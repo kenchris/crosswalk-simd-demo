@@ -4,9 +4,9 @@
   <template>
     <style>
       :host {
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
+        width: auto;
+        height: auto;
+        display: block;
         overflow: hidden;
       }
       #player::before {
@@ -30,7 +30,7 @@
         touch-action: none;
       }
     </style>
-    <div id="player" on-tap="{{ _toggled }}">
+    <div id="player" on-tap="{{_toggled}}">
       <content></content>
     </div>
   </template>

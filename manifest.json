@@ -2,13 +2,22 @@
   "name": "XWalk Kitchensink",
   "xwalk_description": "A showcase of Crosswalk features",
   "start_url": "index.html",
+  "icons": [{
+      "src": "images/icon192.png",
+      "sizes": "192x192",
+    }, {
+      "src": "images/icon144.png",
+      "sizes": "144x144",
+    }, {
+      "src": "images/icon96.png",
+      "sizes": "96x96",
+    }, {
+      "src": "images/icon192.png",
+      "sizes": "72x72",
+    }, {
+      "src": "images/icon192.png",
+      "sizes": "48x48",
+    }],
   "display": "standalone",
-  "icons": {
-    "192": "icon192.png",
-    "144": "icon144.png",
-    "96": "icon96.png",
-    "72": "icon72.png",
-    "48": "icon48.png"
-  },
   "orientation": "any"
 }

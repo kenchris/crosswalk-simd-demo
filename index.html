@@ -4,11 +4,11 @@
   <title>Crosswalk Kitchensink</title>
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" sizes="192x192" href="icon192.png">
-  <link rel="icon" sizes="144x144" href="icon144.png">
-  <link rel="icon" sizes="96x96" href="icon96.png">
-  <link rel="icon" sizes="72x72" href="icon72.png">
-  <link rel="icon" sizes="48x48" href="icon48.png">
+  <link rel="icon" sizes="192x192" href="images/icon192.png">
+  <link rel="icon" sizes="144x144" href="images/icon144.png">
+  <link rel="icon" sizes="96x96" href="images/icon96.png">
+  <link rel="icon" sizes="72x72" href="images/icon72.png">
+  <link rel="icon" sizes="48x48" href="images/icon48.png">
   <link rel="manifest" href="manifest.json">
 
   <script src="bower_components/platform/platform.js"></script>
@@ -137,6 +137,7 @@
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.setSize(this.width, this.width);
         this.renderer.domElement.id = "box";
+        this.renderer.domElement.style.display = "block";
         this.$.player.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(
@@ -221,23 +222,20 @@
     </style>
     <div id="frame" vertical layout>
       <h2 id="title">Mandelbrot simulation</h2>
-      <br><br>
-      <div justified horizontal layout>
+      <div justified horizontal layout style="padding: 15px 0px">
         <div flex>SIMD acceleration</div>
         <paper-toggle-button id="simd_button" class="blue"
             on-change="{{ simdToggleChange }}"></paper-toggle-button>
       </div>
-      <br><br>
-      <div>
+      <div style="padding: 15px 0px">
         <span>Number of workers</span><span id="counter">{{workerCount}}</span>
         <paper-slider pin snaps min="1" max="{{maxWorkers}}" step="1"
             value="1" on-core-change="{{ workerChange }}"></paper-slider>
       </div>
-      <br><br>
       <div vertical layout>
         <mandelbrot-animation style="width:auto; height:auto" id="player" on-fps-change="{{fpsChange}}"></mandelbrot-animation>
       </div>
-      <div horizontal justified layout>
+      <div horizontal justified layout style="padding: 10px 0px">
           <div>FPS: <span id="fps">0</span> (average: <span id="average">0</span>)</div>
       </div>
     </div>
@@ -414,7 +412,8 @@
         }
       },
       toggleDrawer: function() {
-        this.$.drawer.togglePanel();
+          this.$.drawer.togglePanel();
+          this.$.pages.children[this.routeIndex].children[0].visibleChange(false);
       },
       menuItemSelected: function(e, detail, sender) {
         this.$.drawer.closeDrawer();
