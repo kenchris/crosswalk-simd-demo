@@ -41,6 +41,9 @@
       font-family: 'RobotoDraft', sans-serif;
       font-weight: 300;
     }
+    main-app /deep/ .brand-title {
+      color: #F06292;
+    }
     main-app /deep/ core-toolbar {
       color: white;
       background-color: #E91E63;
@@ -70,7 +73,6 @@
   <template>
     <style>
       #title {
-        color: rgb(79, 125, 201);
         font-size: 24px;
         font-weight: 400;
         line-height: 32px;
@@ -95,7 +97,7 @@
       }
     </style>
     <div vertical layout>
-      <h2 id="title">Rotating cube</h2>
+      <h2 id="title" class="brand-title">Rotating cube</h2>
       <play-overlay id="player" on-play="{{onPlay}}" on-pause="{{onPause}}">
         <div>
           <div fit id='background'></div>
