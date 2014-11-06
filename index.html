@@ -35,11 +35,33 @@
 
   <link rel="import" href="demos/mandelbrot/mandelbrot-demo.html">
 
-  <style>
+  <style shim-shadowdom>
     body {
       background-color: #E5E5E5;
       font-family: 'RobotoDraft', sans-serif;
       font-weight: 300;
+    }
+    main-app /deep/ core-toolbar {
+      color: white;
+      background-color: #E91E63;
+    }
+    main-app /deep/ paper-radio-button /deep/ #ink[checked] {
+      color: #F06292;
+    }
+    main-app /deep/ paper-radio-button /deep/ #onRadio {
+      background-color: #F06292;
+    }
+    main-app /deep/ paper-toggle-button /deep/ #toggleBar[checked] {
+      background-color: #F06292;
+    }
+    main-app /deep/ paper-slider /deep/ #sliderBar::shadow #activeProgress {
+      background-color: #F06292;
+    }
+    main-app /deep/ paper-slider /deep/ #sliderKnobInner {
+      background-color: #E91E63;
+    }
+    main-app /deep/ paper-slider /deep/ #sliderKnobInner::before {
+      background-color: #E91E63;
     }
   </style>
 </head>
@@ -183,19 +205,6 @@
 <polymer-element name="main-app">
   <template>
     <style>
-      core-toolbar {
-        color: rgb(255, 255, 255);
-        background-color: rgb(79, 125, 201);
-      }
-      paper-toggle-button.blue::shadow paper-radio-button::shadow #ink[checked] {
-        color: #4285f4;
-      }
-      paper-toggle-button.blue::shadow paper-radio-button::shadow #onRadio {
-        background-color: #4285f4;
-      }
-      paper-toggle-button.blue::shadow #toggleBar[checked] {
-        background-color: #4285f4;
-      }
       [drawer] {
         box-shadow: rgba(0, 0, 0, 0.0980392) 0px 2px 4px, rgba(0, 0, 0, 0.0980392) 0px 0px 3px;
         background-color: rgb(250, 250, 250);
