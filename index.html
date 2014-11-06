@@ -12,11 +12,11 @@
   <link rel="manifest" href="manifest.json">
 
   <script src="bower_components/platform/platform.js"></script>
+  <link rel="import" href="bower_components/polymer/polymer.html">
 
   <link rel="import" href="bower_components/font-roboto/roboto.html">
   <link rel="import" href="bower_components/flatiron-director/flatiron-director.html">
 
-  <link rel="import" href="bower_components/polymer/polymer.html">
   <link rel="import" href="bower_components/core-drawer-panel/core-drawer-panel.html">
   <link rel="import" href="bower_components/core-item/core-item.html">
   <link rel="import" href="bower_components/core-menu/core-menu.html">
@@ -24,16 +24,16 @@
   <link rel="import" href="bower_components/core-header-panel/core-header-panel.html">
   <link rel="import" href="bower_components/core-animated-pages/core-animated-pages.html">
   <link rel="import" href="bower_components/core-animated-pages/transitions/cross-fade.html">
-  <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
-  <link rel="import" href="bower_components/paper-slider/paper-slider.html">
-  <link rel="import" href="bower_components/paper-button/paper-button.html">
   <link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
-  <link rel="import" href="bower_components/paper-toast/paper-toast.html">
   <link rel="import" href="bower_components/paper-item/paper-item.html">
-  <link rel="import" href="bower_components/core-scaffold/metadata.html">
 
-  <link rel="import" href="play-overlay.html">
-  <link rel="import" href="mandelbrot/mandelbrot-animation.html">
+  <!-- unremovable links for some reason (bugs?) -->
+  <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+
+  <link rel="import" href="elements/play-overlay/play-overlay.html">
+  <link rel="import" href="elements/demo-card/demo-card.html">
+
+  <link rel="import" href="demos/mandelbrot/mandelbrot-demo.html">
 
   <style>
     body {
@@ -43,16 +43,10 @@
     }
   </style>
 </head>
-<body unresolved fullbleed>
 
-<polymer-element name="my-webgl-card" extends="core-card">
+<polymer-element name="webgl-demo">
   <template>
     <style>
-      #frame {
-        margin: 15px;
-        width: calc(100% - 30px);
-        height: calc(100% - 30px);
-      }
       #title {
         color: rgb(79, 125, 201);
         font-size: 24px;
@@ -61,25 +55,13 @@
         margin-top: 5px;
         margin-bottom: 20px;
       }
-      .background {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0px;
-        left: 0px;
+      #background {
         opacity: 1;
         text-align: center;
         background: url(webgl/textures/bg-tile.png);
       }
-      canvas {
-        z-index: 0;
-        position: relative;
-      }
       #logo {
-        position: absolute;
-        width: calc(100% - 60px);
-        height: calc(100% - 60px);
-        margin: 30px;
+        margin: 15px;
         background-image: url(webgl/textures/CW_Horiz_G_RGB_LG.png);
         background-repeat: no-repeat;
         background-position: center 100%;
@@ -90,18 +72,20 @@
         opacity: .3;
       }
     </style>
-    <div id="frame" vertical layout>
-        <h2 id="title">Rotating cube</h2>
-        <play-overlay id="player" on-play="{{ onPlay }}" on-pause="{{ onPause }}">
-          <div class='background'></div>
-          <div id='logo'></div>
-        </play-overlay>
+    <div vertical layout>
+      <h2 id="title">Rotating cube</h2>
+      <play-overlay id="player" on-play="{{onPlay}}" on-pause="{{onPause}}">
+        <div>
+          <div fit id='background'></div>
+          <div fit id='logo'></div>
+        </div>
+      </play-overlay>
     </div>
   </template>
   <script src="bower_components/threejs/build/three.min.js"></script>
   <script>
 
-    Polymer('my-webgl-card', {
+    Polymer('webgl-demo', {
       ready: function() {
         this.targetRotation = 0;
 
@@ -128,9 +112,9 @@
         this.renderer.domElement.style.opacity = .3;
         this.isAnimating = false;
       },
-      visibleChange: function(visible) {
-        this.$.player.disabled = !visible;
-        if (visible)
+      suspendedChange: function(suspended) {
+        this.$.player.disabled = suspended;
+        if (!suspended)
           this.renderFrame();
       },
       init: function() {
@@ -196,118 +180,12 @@
   </script>
 </polymer-element>
 
-<polymer-element name="my-mandelbrot-card" extends="core-card">
+<polymer-element name="main-app">
   <template>
     <style>
-      #frame {
-        margin: 15px;
-        width: calc(100% - 30px);
-        height: calc(100% - 30px);
-      }
-      paper-slider {
-        width: 100%;
-      }
-      #counter {
-        padding-left: 12px;
-        color: #a0a0a0;
-      }
-      #title {
-          color: rgb(79, 125, 201);
-          font-size: 24px;
-          font-weight: 400;
-          line-height: 32px;
-          margin-top: 5px;
-          margin-bottom: 20px;
-      }
-    </style>
-    <div id="frame" vertical layout>
-      <h2 id="title">Mandelbrot simulation</h2>
-      <div justified horizontal layout style="padding: 15px 0px">
-        <div flex>SIMD acceleration</div>
-        <paper-toggle-button id="simd_button" class="blue"
-            on-change="{{ simdToggleChange }}"></paper-toggle-button>
-      </div>
-      <div style="padding: 15px 0px">
-        <span>Number of workers</span><span id="counter">{{workerCount}}</span>
-        <paper-slider pin snaps min="1" max="{{maxWorkers}}" step="1"
-            value="1" on-core-change="{{ workerChange }}"></paper-slider>
-      </div>
-      <div vertical layout>
-        <mandelbrot-animation style="width:auto; height:auto" id="player" on-fps-change="{{fpsChange}}"></mandelbrot-animation>
-      </div>
-      <div horizontal justified layout style="padding: 10px 0px">
-          <div>FPS: <span id="fps">0</span> (average: <span id="average">0</span>)</div>
-      </div>
-    </div>
-    <paper-toast id="error" text="SIMD isn't supported on your system.">
-  </template>
-  <script>
-
-    Polymer('my-mandelbrot-card', {
-      ready: function() {
-        this.maxWorkers = navigator.hardwareConcurrency;
-        this.resetFpsCount();
-        this.workerCount = 1;
-      },
-      resetFpsCount: function() {
-        this.measurements = 0;
-        this.fpsTotal = 0;
-      },
-      visibleChange: function(visible) {
-        this.$.player.disabled = !visible;
-      },
-      simdToggleChange: function(e, detail, sender) {
-        if (sender.checked && typeof SIMD === "undefined") {
-          this.async(function() { sender.checked = false; }, null, 200);
-          this.$.error.show();
-          return;
-        }
-        this.resetFpsCount();
-        this.$.player.setAttribute("useSIMD", sender.checked);
-      },
-      fpsChange: function(e, detail, sender) {
-        this.fpsTotal += detail.value;
-        this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)
-        this.$.fps.textContent = detail.value.toFixed(0);
-      },
-      workerChange: function(e, detail, sender) {
-        this.resetFpsCount();
-        this.workerCount = sender.value;
-        this.$.player.setAttribute("workerCount", this.workerCount);
-      }
-    });
-
-  </script>
-</polymer-element>
-
-<polymer-element name="my-presenter" attributes="selected">
-  <template>
-    <style>
-      :host {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-      }
       core-toolbar {
         color: rgb(255, 255, 255);
         background-color: rgb(79, 125, 201);
-      }
-      core-header-panel {
-        width: 100%;
-        height: 100%;
-        left: 0px;
-        top: 0px;
-        position: absolute;
-      }
-      core-animated-pages {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        background-color: rgb(238, 238, 238);
       }
       paper-toggle-button.blue::shadow paper-radio-button::shadow #ink[checked] {
         color: #4285f4;
@@ -322,77 +200,65 @@
         box-shadow: rgba(0, 0, 0, 0.0980392) 0px 2px 4px, rgba(0, 0, 0, 0.0980392) 0px 0px 3px;
         background-color: rgb(250, 250, 250);
       }
+
       .narrow_only {
         display: none;
       }
       core-drawer-panel[narrow] .narrow_only {
         display: inline-block;
       }
-      my-webgl-card, my-mandelbrot-card {
-        display: inline-block;
-        margin: 10px;
-        width: calc(100% - 20px);
-        max-width: 600px;
-        overflow: auto;
-        border-top-left-radius: 2px;
-        border-top-right-radius: 2px;
-        border-bottom-right-radius: 2px;
-        border-bottom-left-radius: 2px;
-        box-shadow: rgba(0, 0, 0, 0.0980392) 0px 2px 4px, rgba(0, 0, 0, 0.0980392) 0px 0px 3px;
-        background-color: rgb(255, 255, 255);
-      }
     </style>
 
-      <flatiron-director route="{{route}}" autoHash></flatiron-director>
-
-      <core-drawer-panel id="drawer">
+    <flatiron-director route="{{route}}" autoHash></flatiron-director>
+    <core-drawer-panel id="drawer">
       <div drawer>
-          <core-toolbar id="toolbar">
-          <div flex>Kitchensink</div>
+        <core-toolbar id="toolbar">
+        <div flex>Kitchensink</div>
+        </core-toolbar>
+        <core-menu valueattr="hash" selected="{{route}}" on-core-select="{{menuItemSelected}}">
+          <template repeat="{{page in pages}}">
+            <paper-item icon="label{{route != page.hash ? '-outline' : ''}}"
+                       label="{{page.name}}" hash="{{page.hash}}">
+              <a href="#{{page.hash}}"></a>
+            </paper-item>
+          </template>
+        </core-menu>
+      </div>
+      <div main layout vertical>
+        <core-header-panel flex mode="scroll">
+          <core-toolbar>
+            <paper-icon-button icon="menu" id="menu_button" class="narrow_only"
+                on-click="{{toggleDrawer}}"></paper-icon-button>
+            <div flex>{{pages[routeIndex].name}}</div>
+            <paper-icon-button icon="arrow-back" on-click="{{goBack}}"
+                disabled="{{route === pages[0].hash}}"></paper-icon-button>
+            <paper-icon-button icon="arrow-forward" on-click="{{goForward}}"
+                disabled="{{route === pages[pages.length - 1].hash}}"></paper-icon-button>
           </core-toolbar>
-          <core-menu valueattr="hash" selected="{{route}}" on-core-select="{{menuItemSelected}}">
-            <template repeat="{{page in pages}}">
-              <paper-item icon="label{{route != page.hash ? '-outline' : ''}}"
-                         label="{{page.name}}" hash="{{page.hash}}">
-                <a href="#{{page.hash}}"></a>
-              </paper-item>
-            </template>
-          </core-menu>
+          <div id="content" fit vertical layout>
+            <core-animated-pages flex selected="{{route}}" valueattr="hash"
+                transitions="cross-fade-all" id="pages">
+              <section hash="mandelbrot">
+                <demo-card cross-fade-all>
+                  <mandelbrot-demo suspendable></mandelbrot-demo>
+                </demo-card>
+              </section>
+              <section hash="webgl">
+                <demo-card cross-fade-all>
+                  <webgl-demo suspendable></webgl-demo>
+                </demo-card>
+              </section>
+            </core-animated-pages>
+          </div>
+        </core-header-panel>
       </div>
-      <div main>
-      <core-header-panel mode="standard">
-
-      <core-toolbar>
-        <paper-icon-button icon="menu" id="menu_button" class="narrow_only"
-                      on-click="{{toggleDrawer}}"></paper-icon-button>
-        <div flex>{{pages[routeIndex].name}}</div>
-        <paper-icon-button icon="arrow-back" on-click="{{goBack}}"
-                       disabled="{{route === pages[0].hash}}"></paper-icon-button>
-        <paper-icon-button icon="arrow-forward" on-click="{{goForward}}"
-                       disabled="{{route === pages[pages.length - 1].hash}}"></paper-icon-button>
-      </core-toolbar>
-
-      <div layout horizontal center-center fit>
-      <core-animated-pages selected="{{route}}" valueattr="hash"
-                        transitions="cross-fade" id="pages">
-        <section hash="mandelbrot" layout vertical center active>
-          <my-mandelbrot-card cross-fade></my-mandelbrot-card>
-        </section>
-        <section hash="webgl" layout vertical center active>
-          <my-webgl-card cross-fade></my-webgl-card>
-        </section>
-        </core-animated-pages>
-      </div>
-
-      </core-header-panel>
-  </div>
-  </core-drawer-panel>
+    </core-drawer-panel>
 
   </template>
 
   <script>
 
-    Polymer('my-presenter', {
+    Polymer('main-app', {
       ready: function() {
         this.pages = [
           { name: 'Mandelbrot', hash: 'mandelbrot' },
@@ -403,17 +269,23 @@
       },
       routeChanged: function(oldRoute, newRoute) {
         for (var i = 0; i < this.pages.length; i++) {
+          var suspended = true;
           if (this.pages[i].hash === newRoute) {
             this.routeIndex = i;
-            this.$.pages.children[i].children[0].visibleChange(true);
-          } else if (this.pages[i].hash === oldRoute) {
-            this.$.pages.children[i].children[0].visibleChange(false);
+            suspended = false;
           }
+          var suspendables = this.$.pages.children[i].querySelectorAll('[suspendable]');
+          [].forEach.call(suspendables, function(el) {
+            el.suspendedChange(suspended);
+          });
         }
       },
       toggleDrawer: function() {
           this.$.drawer.togglePanel();
-          this.$.pages.children[this.routeIndex].children[0].visibleChange(false);
+          var suspendables = this.$.pages.querySelectorAll('[suspendable]');
+          [].forEach.call(suspendables, function(el) {
+            el.suspendedChange(true);
+          });
       },
       menuItemSelected: function(e, detail, sender) {
         this.$.drawer.closeDrawer();
@@ -429,6 +301,7 @@
   </script>
   </polymer-element>
 
-  <my-presenter></my-presenter>
+<body unresolved fullbleed>
+  <main-app></main-app>
 </body>
 </html>

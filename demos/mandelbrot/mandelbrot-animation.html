@@ -1,6 +1,6 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<link rel="import" href="../play-overlay.html">
+<link rel="import" href="../../elements/play-overlay/play-overlay.html">
 
 <polymer-element name="mandelbrot-animation" attributes="useSIMD workerCount disabled">
   <template>
@@ -28,12 +28,6 @@
 // Author: Peter Jensen, Intel Corporation
 // Polymerized: Kenneth Christiansen, Intel Corporation
 
-function importBaseURI() {
-   var components = document.currentScript.baseURI.split("/");
-   components.pop();
-   return components.join("/");
-}
-
 // Web Worker management
 var workerPool = function() {
 
@@ -43,7 +37,7 @@ var workerPool = function() {
   var activeWorkersCount = 0;
 
   function MandelbrotWorker(handler, bufferSize) {
-    this.worker = new Worker("mandelbrot/mandelbrot-worker.js");
+    this.worker = new Worker("demos/mandelbrot/mandelbrot-worker.js");
     this.buffer  = new ArrayBuffer(bufferSize);
     this.worker.addEventListener('message', handler, false);
     this.postMessage = function(message, transferList) {
