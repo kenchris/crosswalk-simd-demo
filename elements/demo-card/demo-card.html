@@ -1,0 +1,30 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="demo-card" noscript>
+  <template>
+    <style>
+      #frame {
+        margin: 15px;
+      }
+      #card {
+        display: block;
+        margin: 10px;
+        width: 600px;
+        overflow: hide;
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+        border-bottom-right-radius: 2px;
+        border-bottom-left-radius: 2px;
+        box-shadow: rgba(0, 0, 0, 0.0980392) 0px 2px 4px, rgba(0, 0, 0, 0.0980392) 0px 0px 3px;
+        background-color: rgb(255, 255, 255);
+      }
+    </style>
+    <div layout horizontal center-justified>
+      <div id="card">
+        <div id="frame">
+          <content></content>
+        </div>
+      </div>
+    </div>
+  </template>
+</polymer-element>
