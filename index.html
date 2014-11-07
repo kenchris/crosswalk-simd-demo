@@ -175,6 +175,13 @@
   </polymer-element>
 
 <body unresolved fullbleed>
+  <core-media-query id="mediaQuery" query="max-width: 640px"></core-media-query>
+  <script>
+    document.querySelector('#mediaQuery').addEventListener('core-media-change',
+      function(e) {
+        document.body.classList.toggle('core-narrow', e.detail.matches);
+      });
+  </script>
   <main-app></main-app>
 </body>
 </html>
