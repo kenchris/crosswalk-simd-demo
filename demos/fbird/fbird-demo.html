@@ -1,0 +1,67 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+
+<link rel="import" href="../../elements/play-overlay/play-overlay.html">
+
+<polymer-element name="fbird-demo" useCanvas>
+  <template>
+    <style>
+      #domSurface {
+        width: 100%;
+        height: 400px;
+        position: relative;
+        background: url(../webgl/textures/bg-tile.png);
+      }
+  </style>
+
+    <div vertical layout>
+      <h2 id="title" class="brand-title">Flocking birds</h2>
+      <div justified horizontal layout style="padding: 15px 0px">
+        <div flex>SIMD acceleration</div>
+        <paper-toggle-button id="simd_button" class="blue"
+            on-change="{{ simdToggleChange }}"></paper-toggle-button>
+      </div>
+
+      <play-overlay id="player" on-play="{{onPlay}}" on-pause="{{onPause}}">
+        <div id="domSurface"></div>
+      </play-overlay>
+      <div layout horizontal style="padding: 15px 0px">
+          <div flex>FPS: <span id="fps"></span></div>
+          <div flex>No. birds: <span id="birds"></span></div>
+      </div>
+    </div>
+    <paper-toast id="error" text="SIMD isn't supported on your system.">
+  </template>
+  <script src="fbird.js" type="text/javascript"></script>
+  <script>
+
+    Polymer('fbird-demo', {
+      domReady: function() {
+        fbird.init({self: this, basePath: this.resolvePath('.')});
+      },
+      simdToggleChange: function(e, detail, sender) {
+        if (sender.checked && typeof SIMD === "undefined") {
+          this.async(function() { sender.checked = false; }, null, 200);
+          this.$.error.show();
+          return;
+        }
+        fbird.setUseSIMD(sender.checked);
+      },
+
+      suspendedChange: function(suspended) {
+        this.$.player.disabled = suspended;
+        if (suspended)
+          this.onPause();
+      },
+      onPlay: function() {
+        fbird.start();
+      },
+      onPause: function() {
+        fbird.stop();
+      }
+    });
+
+  </script>
+</polymer-element>

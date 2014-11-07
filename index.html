@@ -31,6 +31,7 @@
 
   <link rel="import" href="demos/mandelbrot/mandelbrot-demo.html">
   <link rel="import" href="demos/webgl/webgl-demo.html">
+  <link rel="import" href="demos/fbird/fbird-demo.html">
 
   <style shim-shadowdom>
     body {
@@ -121,6 +122,11 @@
                   <webgl-demo suspendable></webgl-demo>
                 </demo-card>
               </section>
+              <section hash="fbird">
+                <demo-card cross-fade-all>
+                  <fbird-demo suspendable></fbird-demo>
+                </demo-card>
+              </section>
             </core-animated-pages>
           </div>
         </core-header-panel>
@@ -135,7 +141,8 @@
       ready: function() {
         this.pages = [
           { name: 'Mandelbrot', hash: 'mandelbrot' },
-          { name: 'WebGL', hash: 'webgl' }
+          { name: 'WebGL', hash: 'webgl' },
+          { name: 'Flocking Birds', hash: 'fbird' }
           ];
         this.route = this.route || this.pages[0].hash;
         this.webGLSource = '';
