@@ -3,16 +3,12 @@
 var fbird = (function() {
 
   var config = {
-    surfaceWidth:  1000,
-    surfaceHeight: 400,
-    birdWidth:     10,
-    birdHeight:    10,
-    maxBirds:      100000
+    maxBirds: 100000
   };
 
   var globals = {
-    surfaceWidth:  config.surfaceWidth,
-    surfaceHeight: config.surfaceHeight,
+    surfaceWidth:  0,
+    surfaceHeight: 0,
     params:        null,
     initialized:   false
   };
@@ -132,7 +128,7 @@ var fbird = (function() {
       }
     }
 
-    function updateAllSimd(timeDelta) {
+    function updateAllSIMD(timeDelta) {
       var steps        = accelData.steps;
       var accelCount   = accelData.values.length;
       var subTimeDelta = timeDelta/steps/1000.0;
@@ -181,7 +177,7 @@ var fbird = (function() {
       removeLastBird:         removeLastBird,
       updateAllConstantAccel: updateAllConstantAccel,
       updateAll:              updateAll,
-      updateAllSimd:          updateAllSimd,
+      updateAllSIMD:          updateAllSIMD,
       posOf:                  posOf,
       dumpOne:                dumpOne
     };
@@ -194,20 +190,20 @@ var fbird = (function() {
     var ctx;
     var domNode;
 
-    var sprites         = [];
+    var sprites = [];
     var spritePositions = [];
 
     function init(domElem) {
       domNode = domElem;
 
-      if (domNode.hasOwnProperty("tagName") === "canvas") {
+      if (domNode.tagName === "CANVAS") {
         useCanvas = true;
         ctx = domElem.getContext("2d");
       }
 
       globals.surfaceWidth = domNode.clientWidth;
       globals.surfaceHeight = domNode.clientHeight;
-      sprites         = [];
+      sprites = [];
       spritePositions = [];
     }
 
@@ -232,7 +228,7 @@ var fbird = (function() {
       return sprites.length - 1;
     }
 
-    function createDomSprite(width, height, rgbaData) {
+    function createDOMSprite(width, height, rgbaData) {
       var canvas = document.createElement("canvas");
       canvas.style.width = width;
       canvas.style.height = height;
@@ -283,7 +279,7 @@ var fbird = (function() {
     function createSprite(width, height, rgbaData) {
       if (useCanvas)
         return createCanvasSprite(width, height, rgbaData);
-      return createDomSprite(width, height, rgbaData);
+      return createDOMSprite(width, height, rgbaData);
     }
 
     function placeCanvasSprite(spriteId, x, y) {
@@ -292,10 +288,10 @@ var fbird = (function() {
       return spritePositions.length - 1;
     }
 
-    function placeDomSprite(spriteId, x, y) {
+    function placeDOMSprite(spriteId, x, y) {
       var img = sprites[spriteId].img;
       var imgClone = img.cloneNode(true);
-      domNode.appendChild(imgClone);
+      self.$.frame.appendChild(imgClone);
       imgClone.style.left = x + "px";
       imgClone.style.top = y + "px";
       spritePositions.push({img: imgClone, x: x, y: y});
@@ -306,7 +302,7 @@ var fbird = (function() {
       if (useCanvas)
         return placeCanvasSprite(spriteId, x, y);
       else
-        return placeDomSprite(spriteId, x, y);
+        return placeDOMSprite(spriteId, x, y);
     }
 
     function moveCanvasSprite(posId, x, y) {
@@ -318,7 +314,7 @@ var fbird = (function() {
       ctx.putImageData(sprite.sprite, x, y);
     }
 
-    function moveDomSprite(posId, x, y) {
+    function moveDOMSprite(posId, x, y) {
       var spritePos = spritePositions[posId];
       var img = spritePos.img;
       img.style.left = x + "px";
@@ -329,7 +325,7 @@ var fbird = (function() {
       if (useCanvas)
         moveCanvasSprite(posId, x, y);
       else
-        moveDomSprite(posId, x, y);
+        moveDOMSprite(posId, x, y);
     }
 
     function removeLastCanvasSprite() {
@@ -339,19 +335,17 @@ var fbird = (function() {
       spritePositions.pop();
     }
 
-    function removeLastDomSprite() {
+    function removeLastDOMSprite() {
       var spritePos = spritePositions[spritePositions.length-1];
       spritePos.img.remove();
       spritePositions.pop();
     }
 
     function removeLastSprite() {
-      if (useCanvas) {
+      if (useCanvas)
         removeLastCanvasSprite();
-      }
-      else {
-        removeLastDomSprite();
-      }
+      else
+        removeLastDOMSprite();
     }
 
     function posOf(posId) {
@@ -434,10 +428,10 @@ var fbird = (function() {
 
   var animation = function() {
     var animate;
-    var useSimd = false;
+    var useSIMD = false;
     var birdSprite;
     var birdSpriteBase;
-    var birdSpriteSimd;
+    var birdSpriteSIMD;
     var allBirds = [];
     var $fps;
     var $birds;
@@ -513,10 +507,10 @@ var fbird = (function() {
 
     function setUseSIMD(use) {
       useSIMD = use;
-      if (useSimd)
+      if (useSIMD)
         birdSprite = birdSpriteBase;
       else
-        birdSprite = birdSpriteSimd;
+        birdSprite = birdSpriteSIMD;
     }
 
     // main animation function.  One new frame is created and the next one is requested
@@ -545,8 +539,8 @@ var fbird = (function() {
         var timeDelta = time - lastTime;
         if (globals.params.constantAccel === "true") {
           birds.updateAllConstantAccel(timeDelta);
-        } else if (useSimd) {
-          birds.updateAllSimd(time - lastTime);
+        } else if (useSIMD) {
+          birds.updateAllSIMD(time - lastTime);
         } else {
           birds.updateAll(time - lastTime);
         }
@@ -562,7 +556,7 @@ var fbird = (function() {
 
     function init() {
       // initalize module variables
-      useSimd  = false;
+      useSIMD  = false;
       allBirds = [];
       lastTime = 0.0;
 
@@ -570,10 +564,10 @@ var fbird = (function() {
 
       $fps   = self.$.fps;
       $birds = self.$.birds;
-      surface.init(self.$.domSurface);
+      surface.init(self.$.frame); // or self.$.canvas
 
       birdSpriteBase = surface.createImageSprite(globals.params.basePath + "fbird-spy2.png", 34, 25, globals.params.scale);
-      birdSpriteSimd = surface.createImageSprite(globals.params.basePath + "fbird2-spy.png", 34, 25, globals.params.scale);
+      birdSpriteSIMD = surface.createImageSprite(globals.params.basePath + "fbird2-spy.png", 34, 25, globals.params.scale);
       birdSprite     = birdSpriteBase;
 
       var birdDim = surface.dimOfSprite(birdSpriteBase);
@@ -618,7 +612,6 @@ var fbird = (function() {
       "adjustBirds":        "true",
       "initialBirdCount":   "20",
       "useCanvas":          "false",
-      "useDom":             "true",
       "constantAccel":      "false",
       "scale":              "1.0",
       "startX":             "random",

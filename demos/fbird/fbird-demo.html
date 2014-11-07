@@ -8,11 +8,17 @@
 <polymer-element name="fbird-demo" useCanvas>
   <template>
     <style>
-      #domSurface {
+      #frame {
+        display: block;
         width: 100%;
         height: 400px;
         position: relative;
         background: url(../webgl/textures/bg-tile.png);
+      }
+      #canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
   </style>
 
@@ -25,7 +31,9 @@
       </div>
 
       <play-overlay id="player" on-play="{{onPlay}}" on-pause="{{onPause}}">
-        <div id="domSurface"></div>
+        <div id="frame">
+            <canvas id="canvas"></canvas>
+        </div>
       </play-overlay>
       <div layout horizontal style="padding: 15px 0px">
           <div flex>FPS: <span id="fps"></span></div>
