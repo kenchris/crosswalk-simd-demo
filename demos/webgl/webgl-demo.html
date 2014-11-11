@@ -89,7 +89,7 @@
         this.scene = new THREE.Scene();
 
         var geometry = new THREE.BoxGeometry(200, 200, 200);
-        var texture = THREE.ImageUtils.loadTexture('demos/webgl/textures/crosswalk.png');
+        var texture = THREE.ImageUtils.loadTexture(this.resolvePath('textures/crosswalk.png'));
         texture.anisotropy = this.renderer.getMaxAnisotropy();
 
         var material = new THREE.MeshBasicMaterial ( { map: texture } );

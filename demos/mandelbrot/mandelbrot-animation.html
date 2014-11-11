@@ -23,13 +23,12 @@
   </template>
 
   <script>
-
 // Mandelbrot using SIMD and web workers
 // Author: Peter Jensen, Intel Corporation
 // Polymerized: Kenneth Christiansen, Intel Corporation
 
 // Web Worker management
-var workerPool = function() {
+WorkerPool = function(src) {
 
   // private
 
@@ -37,7 +36,7 @@ var workerPool = function() {
   var activeWorkersCount = 0;
 
   function MandelbrotWorker(handler, bufferSize) {
-    this.worker = new Worker("demos/mandelbrot/mandelbrot-worker.js");
+    this.worker = new Worker(src);
     this.buffer  = new ArrayBuffer(bufferSize);
     this.worker.addEventListener('message', handler, false);
     this.postMessage = function(message, transferList) {
@@ -100,8 +99,7 @@ var workerPool = function() {
     bufferOf:            bufferOf,
     workerIsActive:      workerIsActive
   };
-
-}();
+};
 
 Polymer('mandelbrot-animation', {
     publish: {
@@ -113,6 +111,8 @@ Polymer('mandelbrot-animation', {
     workerCount: 1,
     maxIterations: 100,
     init: function() {
+      this.workerPool = new WorkerPool(this.resolvePath("mandelbrot-worker.js"));
+
       // Workaround: Setting it in style doesn't work for some reason.
       this.$.mandel.style = "display: block";
 
@@ -182,7 +182,7 @@ Polymer('mandelbrot-animation', {
 
       // Send a request to a worker to compute a frame.
       function requestFrame(index) {
-        workerPool.sendRequest(
+        self.workerPool.sendRequest(
           index,
           {
             request_count:  request_count,
@@ -211,21 +211,21 @@ Polymer('mandelbrot-animation', {
       function updateFrame(e) {
         var worker_index  = e.data.worker_index;
         var request_count = e.data.message.request_count;
-        workerPool.restoreBuffer(worker_index, e.data.buffer);
+        self.workerPool.restoreBuffer(worker_index, e.data.buffer);
 
         if (!self.isAnimating) {
-          workerPool.terminateAllWorkers();
+          self.workerPool.terminateAllWorkers();
           return;
-      }
+        }
 
-        if (workerPool.numberOfWorkers() < self.workerCount) {
-          var worker = workerPool.addWorker(updateFrame, bufferSize);
+        if (self.workerPool.numberOfWorkers() < self.workerCount) {
+          var worker = self.workerPool.addWorker(updateFrame, bufferSize);
           requestFrame(worker);
           advanceFrame();
       }
 
-        if (workerPool.numberOfWorkers() > self.workerCount) {
-          workerPool.terminateLastWorker();
+        if (self.workerPool.numberOfWorkers() > self.workerCount) {
+          self.workerPool.terminateLastWorker();
         }
 
         if (request_count !== frame_count) {
@@ -234,7 +234,7 @@ Polymer('mandelbrot-animation', {
           return;
         }
 
-        var buffer = new Uint8ClampedArray (e.data.buffer);
+        var buffer = new Uint8ClampedArray(e.data.buffer);
         paintFrame (buffer);
         frame_count++
 
@@ -244,17 +244,18 @@ Polymer('mandelbrot-animation', {
           while ((frame = findFrame(frame_count)) !== false) {
             var windex = pending_frames[frame].worker_index;
             pending_frames.splice(frame, 1); // Remove the frame from the pending_frames
-            var buffer = new Uint8ClampedArray (workerPool.bufferOf(windex));
+            var buffer = new Uint8ClampedArray(self.workerPool.bufferOf(windex));
             paintFrame(buffer);
             frame_count++;
-            if (workerPool.workerIsActive(windex)) {
+
+            if (self.workerPool.workerIsActive(windex)) {
               requestFrame(windex);
               advanceFrame();
             }
           }
         }
 
-        if (workerPool.workerIsActive(e.data.worker_index)) {
+        if (self.workerPool.workerIsActive(e.data.worker_index)) {
           requestFrame(e.data.worker_index);
           advanceFrame();
         }
@@ -271,7 +272,7 @@ Polymer('mandelbrot-animation', {
         yc += yc_step;
       }
 
-      workerPool.addWorker(updateFrame, bufferSize);
+      self.workerPool.addWorker(updateFrame, bufferSize);
       requestFrame(0);
       advanceFrame();
     },

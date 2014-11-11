@@ -60,8 +60,7 @@
 
       suspendedChange: function(suspended) {
         this.$.player.disabled = suspended;
-        if (suspended)
-          this.onPause();
+        this.onActionChange();
       },
       onActionChange: function() {
         if (this.$.player.checked)
