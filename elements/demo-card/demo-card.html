@@ -1,10 +1,20 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="demo-card" noscript>
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link href="../../bower_components/core-icons/core-icons.html" rel="import">
+
+<polymer-element name="demo-card">
   <template>
     <style>
       #frame {
         margin: 15px;
+      }
+      #frame:-webkit-full-screen {
+        width: 100%;
+        height: 100%;
+      }
+      :-webkit-full-screen #button {
+        display: none;
       }
       #card {
         display: block;
@@ -23,8 +33,23 @@
       <div id="card">
         <div id="frame">
           <content></content>
+          <div layout horizontal end-justified>
+            <paper-icon-button id="button" icon="fullscreen"></paper-icon-button>
+          </div>
         </div>
       </div>
     </div>
   </template>
+  <script>
+
+    Polymer('demo-card', {
+      ready: function() {
+        var fsTarget = this.$.frame;
+        // Work around on-tap not working for fullscreen (non-user initiated).
+        this.$.button.addEventListener("mouseup", function() {
+          fsTarget.webkitRequestFullscreen();
+        });
+      }
+    });
+  </script>
 </polymer-element>

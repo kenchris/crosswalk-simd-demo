@@ -14,7 +14,7 @@
 
   <link rel="manifest" href="manifest.json">
 
-  <script src="bower_components/platform/platform.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
   <link rel="import" href="bower_components/polymer/polymer.html">
 
   <link rel="import" href="bower_components/font-roboto/roboto.html">
@@ -106,11 +106,11 @@
         <core-header-panel flex mode="scroll">
           <core-toolbar>
             <paper-icon-button icon="menu" id="menu_button" class="narrow_only"
-                on-click="{{toggleDrawer}}"></paper-icon-button>
+                on-tap="{{toggleDrawer}}"></paper-icon-button>
             <div flex>{{pages[routeIndex].name}}</div>
-            <paper-icon-button icon="arrow-back" on-click="{{goBack}}"
+            <paper-icon-button icon="arrow-back" on-tap="{{goBack}}"
                 disabled="{{route === pages[0].hash}}"></paper-icon-button>
-            <paper-icon-button icon="arrow-forward" on-click="{{goForward}}"
+            <paper-icon-button icon="arrow-forward" on-tap="{{goForward}}"
                 disabled="{{route === pages[pages.length - 1].hash}}"></paper-icon-button>
           </core-toolbar>
           <div id="content" fit vertical layout>
