@@ -1,6 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="play-overlay" attributes="paused disabled">
+<polymer-element name="action-toggle-overlay" attributes="checked disabled">
   <template>
     <style>
       :host {
@@ -9,7 +9,7 @@
         display: block;
         overflow: hidden;
       }
-      #player::before {
+      #overlay::before {
         background: #000 url("play-overlay-button.svg") no-repeat center center;
         background-size: 72px 72px;
         content: '';
@@ -21,53 +21,46 @@
         position:absolute;
         transition: opacity .2s cubic-bezier(.4,0,.2,1)
       }
-      #player.playing::before {
+      #overlay.checked::before {
         opacity: 0;
       }
-      #player {
+      #overlay {
         cursor:pointer;
         position:relative;
         touch-action: manipulation;
       }
     </style>
-    <div id="player" on-tap="{{_toggled}}">
+    <div id="overlay" on-tap="{{tapAction}}">
       <content></content>
     </div>
   </template>
 
   <script>
-  Polymer('play-overlay', {
+
+  Polymer('action-toggle-overlay', {
     publish: {
-      paused: true,
+      checked: false,
       disabled: false
     },
     disabledChanged: function() {
-      if (this.disabled)
-        this.pause();
-    },
-    play: function() {
-      if (!this.paused)
+      if (!this.disabled)
         return;
-      this.paused = false;
-      this.$.player.classList.add("playing");
-      this.fire('play');
+      this.checked = false;
     },
-    pause: function() {
-      if (this.paused)
-        return;
-      this.paused = true;
-      this.$.player.classList.remove("playing");
-      this.fire('pause');
-    },
-    _toggled: function(ev) {
+    tapAction: function(ev) {
       ev.stopPropagation();
       if (this.disabled)
         return;
 
-      if (this.paused)
-        this.play();
+      this.checked = !this.checked;
+    },
+    checkedChanged: function() {
+      if (this.checked)
+        this.$.overlay.classList.add("checked");
       else
-        this.pause();
+        this.$.overlay.classList.remove("checked");
+
+      this.fire('change');
     }
   });
 

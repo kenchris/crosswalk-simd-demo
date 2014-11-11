@@ -1,6 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<link rel="import" href="../../elements/play-overlay/play-overlay.html">
+<link rel="import" href="../../elements/action-toggle-overlay/action-toggle-overlay.html">
 
 <polymer-element name="mandelbrot-animation" attributes="useSIMD workerCount disabled">
   <template>
@@ -16,9 +16,9 @@
       }
     </style>
     <div id="player">
-      <play-overlay id="control" on-play="{{onPlay}}" on-pause="{{onPause}}">
+      <action-toggle-overlay id="control" on-change="{{onActionChange}}">
         <canvas id="mandel"></canvas>
-      </play-overlay>
+      </action-toggle-overlay>
     </div>
   </template>
 
@@ -140,18 +140,12 @@ Polymer('mandelbrot-animation', {
     disabledChanged: function() {
       this.$.control.disabled = this.disabled;
     },
-    play: function() {
-      this.$.control.play();
-    },
-    pause: function() {
-      this.$.control.pause();
-    },
-    onPause: function() {
-      this.isAnimating = false;
-      self.fire("fps-change", { value: 0 });
-    },
-    onPlay: function() {
-      this.isAnimating = true;
+    onActionChange: function() {
+      this.isAnimating = this.$.control.checked;
+      if (!this.isAnimating) {
+        self.fire("fps-change", { value: 0 });
+        return;
+      }
 
       var scale_start = 1.0;
       var scale_end   = 0.0005;

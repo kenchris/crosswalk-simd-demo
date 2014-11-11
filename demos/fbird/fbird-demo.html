@@ -3,7 +3,7 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 
-<link rel="import" href="../../elements/play-overlay/play-overlay.html">
+<link rel="import" href="../../elements/action-toggle-overlay/action-toggle-overlay.html">
 
 <polymer-element name="fbird-demo" useCanvas>
   <template>
@@ -30,7 +30,7 @@
             on-change="{{ simdToggleChange }}"></paper-toggle-button>
       </div>
 
-      <play-overlay id="player" on-play="{{onPlay}}" on-pause="{{onPause}}">
+      <action-toggle-overlay id="player" on-change="{{onActionChange}}">
         <div id="frame">
             <canvas id="canvas"></canvas>
         </div>
@@ -63,11 +63,11 @@
         if (suspended)
           this.onPause();
       },
-      onPlay: function() {
-        fbird.start();
-      },
-      onPause: function() {
-        fbird.stop();
+      onActionChange: function() {
+        if (this.$.player.checked)
+          fbird.start();
+        else
+          fbird.stop();
       }
     });
 

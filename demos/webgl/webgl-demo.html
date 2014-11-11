@@ -1,6 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<link rel="import" href="../../elements/play-overlay/play-overlay.html">
+<link rel="import" href="../../elements/action-toggle-overlay/action-toggle-overlay.html">
 
 <polymer-element name="webgl-demo">
   <template>
@@ -31,12 +31,12 @@
     </style>
     <div vertical layout>
       <h2 id="title" class="brand-title">Rotating cube</h2>
-      <play-overlay id="player" on-play="{{onPlay}}" on-pause="{{onPause}}">
+      <action-toggle-overlay id="player" on-change="{{onActionChange}}">
         <div>
           <div fit id='background'></div>
           <div fit id='logo'></div>
         </div>
-      </play-overlay>
+      </action-toggle-overlay>
     </div>
   </template>
   <script src="../../bower_components/threejs/build/three.min.js"></script>
@@ -56,18 +56,18 @@
       renderFrame: function() {
         window.requestAnimationFrame(this.animate.bind(this));
       },
-      onPlay: function() {
-        if (this.isAnimating)
+      onActionChange: function() {
+        if (this.$.player.checked === this.isAnimating)
           return;
-        this.renderer.domElement.style.opacity = 1;
-        this.isAnimating = true;
-        this.renderFrame();
-      },
-      onPause: function() {
-        if (!this.isAnimating)
-          return;
-        this.renderer.domElement.style.opacity = .3;
-        this.isAnimating = false;
+
+        this.isAnimating = this.$.player.checked;
+
+        if (this.isAnimating) {
+          this.renderer.domElement.style.opacity = 1;
+          this.renderFrame();
+        } else {
+          this.renderer.domElement.style.opacity = .3;
+        }
       },
       suspendedChange: function(suspended) {
         this.$.player.disabled = suspended;
