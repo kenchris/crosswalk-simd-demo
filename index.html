@@ -29,6 +29,7 @@
   <link rel="import" href="bower_components/core-animated-pages/transitions/cross-fade.html">
   <link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
   <link rel="import" href="bower_components/paper-item/paper-item.html">
+  <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
 
   <link rel="import" href="elements/demo-card/demo-card.html">
 
@@ -43,30 +44,45 @@
       font-family: 'RobotoDraft', sans-serif;
       font-weight: 300;
     }
-    main-app /deep/ .brand-title {
+    html /deep/ .brand-title {
       color: #F06292;
     }
-    main-app /deep/ core-toolbar {
+    html /deep/ core-toolbar {
       color: white;
       background-color: #E91E63;
     }
-    main-app /deep/ paper-radio-button /deep/ #ink[checked] {
+    html /deep/ paper-radio-button /deep/ #ink[checked] {
       color: #F06292;
     }
-    main-app /deep/ paper-radio-button /deep/ #onRadio {
+    html /deep/ paper-radio-button /deep/ #onRadio {
       background-color: #F06292;
     }
-    main-app /deep/ paper-toggle-button /deep/ #toggleBar[checked] {
+    html /deep/ paper-toggle-button /deep/ #toggleBar[checked] {
       background-color: #F06292;
     }
-    main-app /deep/ paper-slider /deep/ #sliderBar::shadow #activeProgress {
+    html /deep/ paper-slider /deep/ #sliderBar::shadow #activeProgress {
       background-color: #F06292;
     }
-    main-app /deep/ paper-slider /deep/ #sliderKnobInner {
+    html /deep/ paper-slider /deep/ #sliderKnobInner {
       background-color: #E91E63;
     }
-    main-app /deep/ paper-slider /deep/ #sliderKnobInner::before {
+    html /deep/ paper-slider /deep/ #sliderKnobInner::before {
       background-color: #E91E63;
+    }
+
+    html /deep/ .settings {
+      position: fixed;
+      top: 0px;
+      right: 0px;
+      padding: 0px;
+      margin: 0px;
+    }
+    html /deep/ .settings::shadow #scroller {
+      padding: 0px;
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
     }
   </style>
 </head>
@@ -88,6 +104,13 @@
     </style>
 
     <flatiron-director route="{{route}}" autoHash></flatiron-director>
+    <paper-dialog id="settings" class="settings" transition="core-transition-center">
+      <core-toolbar id="toolbar">
+        <paper-icon-button icon="arrow-back" on-tap="{{closeSettings}}"></paper-icon-button>
+        <div flex>Settings</div>
+      </core-toolbar>
+    </paper-dialog>
+
     <core-drawer-panel id="drawer">
       <div drawer>
         <core-toolbar id="toolbar">
@@ -100,6 +123,7 @@
               <a href="#{{page.hash}}"></a>
             </paper-item>
           </template>
+          <paper-item icon="settings" label="Settings" hash="settings"></paper-item>
         </core-menu>
       </div>
       <div main layout vertical>
@@ -136,7 +160,6 @@
         </core-header-panel>
       </div>
     </core-drawer-panel>
-
   </template>
 
   <script>
@@ -146,11 +169,18 @@
         this.pages = [
           { name: 'Mandelbrot', hash: 'mandelbrot' },
           { name: 'WebGL', hash: 'webgl' },
-          { name: 'Flocking Birds', hash: 'fbird' }
+          { name: 'Flocking Birds', hash: 'fbird' },
           ];
         this.route = this.route || this.pages[0].hash;
       },
       routeChanged: function(oldRoute, newRoute) {
+        if (newRoute === 'settings') {
+          this.$.drawer.closeDrawer();
+          this.$.settings.toggle();
+          this.route = oldRoute;
+          return;
+        }
+
         for (var i = 0; i < this.pages.length; i++) {
           var suspended = true;
           if (this.pages[i].hash === newRoute) {
@@ -162,6 +192,9 @@
             el.suspendedChange(suspended);
           });
         }
+      },
+      closeSettings: function() {
+        this.$.settings.close();
       },
       toggleDrawer: function() {
           this.$.drawer.togglePanel();
