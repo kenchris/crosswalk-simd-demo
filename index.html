@@ -44,6 +44,9 @@
       font-family: 'RobotoDraft', sans-serif;
       font-weight: 300;
     }
+    html > a {
+      -webkit-touch-callout: none;
+    }
     html /deep/ .brand-title {
       color: #F06292;
     }
@@ -120,7 +123,7 @@
           <template repeat="{{page in pages}}">
             <paper-item icon="label{{route != page.hash ? '-outline' : ''}}"
                        label="{{page.name}}" hash="{{page.hash}}">
-              <a href="#{{page.hash}}"></a>
+              <a oncontextmenu="return false;" href="#{{page.hash}}"></a>
             </paper-item>
           </template>
           <paper-item icon="settings" label="Settings" hash="settings"></paper-item>
