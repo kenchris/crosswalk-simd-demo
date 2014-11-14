@@ -87,6 +87,26 @@
       max-width: 100vw;
       max-height: 100vh;
     }
+    html /deep/ .settings hr {
+      border: 0px;
+      background-color: rgba(0, 0, 0, 0.12);
+      height: 1px;
+    }
+    html /deep/ .settings .typo-button {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    html /deep/ .settings .typo-body1 {
+      font-size: 11pt;
+    }
+    html /deep/ .settings .typo-tophead {
+      font-size: 12pt;
+    }
+    html /deep/ .settings a {
+      text-decoration: none;
+      color: inherit;
+    }
   </style>
 </head>
 
@@ -107,15 +127,27 @@
       paper-item > core-label {
         margin: 0px 10px;
       }
-
     </style>
 
     <flatiron-director route="{{route}}" autoHash></flatiron-director>
+
     <paper-dialog id="settings" class="settings" transition="core-transition-center">
       <core-toolbar id="toolbar">
         <paper-icon-button icon="arrow-back" on-tap="{{closeSettings}}"></paper-icon-button>
         <div flex>Settings</div>
       </core-toolbar>
+      <div style="margin: 8px 15px">
+        <div style="margin: 0px 10px">
+          <core-label class="typo-button">About</core-label>
+        </div>
+        <hr style="height: 3px">
+        <a href="http://www.polymer-project.org" target="_blank">
+          <div style="margin: 0px 10px" vertical layout>
+            <core-label class="typo-tophead">Polymer version</core-label>
+            <core-label class="typo-body1">Version: 0.5.1</core-label>
+          </div>
+        </a>
+      </div>
     </paper-dialog>
 
     <core-drawer-panel id="drawer">
