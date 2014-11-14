@@ -104,6 +104,10 @@
       core-drawer-panel[narrow] .narrow_only {
         display: inline-block;
       }
+      paper-item > core-label {
+        margin: 0px 10px;
+      }
+
     </style>
 
     <flatiron-director route="{{route}}" autoHash></flatiron-director>
@@ -121,12 +125,15 @@
         </core-toolbar>
         <core-menu valueattr="hash" selected="{{route}}" on-core-select="{{menuItemSelected}}">
           <template repeat="{{page in pages}}">
-            <paper-item icon="label{{route != page.hash ? '-outline' : ''}}"
-                       label="{{page.name}}" hash="{{page.hash}}">
-              <a oncontextmenu="return false;" href="#{{page.hash}}"></a>
+            <paper-item hash="{{page.hash}}">
+              <core-icon icon="label{{route != page.hash ? '-outline' : ''}}"></core-icon>
+              <core-label>{{page.name}}</core-label>
             </paper-item>
           </template>
-          <paper-item icon="settings" label="Settings" hash="settings"></paper-item>
+          <paper-item hash="settings">
+            <core-icon icon="settings"></core-icon>
+            <core-label>Settings</core-label>
+          </paper-item>
         </core-menu>
       </div>
       <div main layout vertical>
