@@ -4,11 +4,23 @@ This show case is based on Polymer and web components and many things works in C
 
 ### Get started
 
-First install Bower. Instructions can be found at http://bower.io
+First of all you must install Node.js and the NPM (Node Package Manager).
 
-Then run
+With that done, you can install bower (http://bower.io)
+
+$ npm install -g bower
+
+Then run the following to install the JS libraries and Web Components dependencies (Polymer)
 
 $ bower install
+
+To generate the Service Worker (for offline to work) you much first install the dependencies using NPM
+
+$ nmp install
+
+Now you can run the Grunt task which generates the Service Worker
+
+$ grunt
 
 In order to test you need to run a web server. Using python that is quite easy
 
