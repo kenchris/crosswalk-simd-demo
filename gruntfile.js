@@ -23,12 +23,24 @@ module.exports = function(grunt) {
         globals: {}
       },
     },
+    browserify: {
+      main: {
+        src: 'sw.js',
+        dest: 'sw-deploy.js'
+      }
+    },
+    watch: {
+      files: '*.js',
+      tasks: ['default']
+    }
   });
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-browserify');
 
   // Tasks.
-  grunt.registerTask('default', ['jshint']);
+  grunt.registerTask('default', ['browserify', 'watch', 'jshint']);
 
 };

@@ -268,7 +268,7 @@
     });
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', {
+      navigator.serviceWorker.register('/sw-deploy.js', {
       }).then(function(sw) {
         console.log("Service worker registration worked!");
       }).catch(function() {
