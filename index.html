@@ -17,7 +17,6 @@
   <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
   <link rel="import" href="bower_components/polymer/polymer.html">
 
-  <link rel="import" href="bower_components/font-roboto/roboto.html">
   <link rel="import" href="bower_components/flatiron-director/flatiron-director.html">
 
   <link rel="import" href="bower_components/core-drawer-panel/core-drawer-panel.html">
@@ -38,6 +37,58 @@
   <link rel="import" href="demos/fbird/fbird-demo.html">
 
   <style shim-shadowdom>
+    // Font definitions for Roboto, keep in sync with:
+    // http://fonts.googleapis.com/css?family=RobotoDraft:regular,bold,italic,thin,light,bolditalic,black,medium&lang=en
+
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: normal;
+      font-weight: 100;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/hope9NW9iJ5hh8P5PM_EA6wsIWd7evfOerjO4J_CQWU.woff) format('woff');
+    }
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: normal;
+      font-weight: 300;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwfR_54zmj3SbGZQh3vCOwvY.woff) format('woff');
+    }
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: normal;
+      font-weight: 400;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/0xES5Sl_v6oyT7dAKuoni7rIa-7acMAeDBVuclsi6Gc.woff) format('woff');
+    }
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: normal;
+      font-weight: 500;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwaTA90I55Xt7owhZwpPnMsc.woff) format('woff');
+    }
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: normal;
+      font-weight: 700;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwRbnBKKEOwRKgsHDreGcocg.woff) format('woff');
+    }
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: normal;
+      font-weight: 900;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwXgBFnK3b21TxbHkzaX7fVo.woff) format('woff');
+    }
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: italic;
+      font-weight: 400;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/er-TIW55l9KWsTS1x9bTfoo3ZslTYfJv0R05CazkwN8.woff) format('woff');
+    }
+    @font-face {
+      font-family: 'RobotoDraft';
+      font-style: italic;
+      font-weight: 700;
+      src: url(http://fonts.gstatic.com/s/robotodraft/v2/5SAvdU0uYYlH8OURAykt5yHgNb6vKVPdRA9LSAKGxzw.woff) format('woff');
+    }
+
     body {
       -webkit-tap-highlight-color: rgba(0,0,0,0);
       background-color: #E5E5E5;

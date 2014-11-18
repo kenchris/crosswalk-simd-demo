@@ -77,8 +77,14 @@ self.addEventListener('install', function(event) {
         '/bower_components/paper-input/paper-input-decorator.css',
 
         // Styling:
-        '/bower_components/font-roboto/roboto.html',
-        //'http://fonts.googleapis.com/css?family=RobotoDraft:regular,bold,italic,thin,light,bolditalic,black,medium&lang=en',
+        'http://fonts.gstatic.com/s/robotodraft/v2/hope9NW9iJ5hh8P5PM_EA6wsIWd7evfOerjO4J_CQWU.woff',
+        'http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwfR_54zmj3SbGZQh3vCOwvY.woff',
+        'http://fonts.gstatic.com/s/robotodraft/v2/0xES5Sl_v6oyT7dAKuoni7rIa-7acMAeDBVuclsi6Gc.woff',
+        'http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwaTA90I55Xt7owhZwpPnMsc.woff',
+        'http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwRbnBKKEOwRKgsHDreGcocg.woff',
+        'http://fonts.gstatic.com/s/robotodraft/v2/u0_CMoUf3y3-4Ss4ci-VwXgBFnK3b21TxbHkzaX7fVo.woff',
+        'http://fonts.gstatic.com/s/robotodraft/v2/er-TIW55l9KWsTS1x9bTfoo3ZslTYfJv0R05CazkwN8.woff',
+        'http://fonts.gstatic.com/s/robotodraft/v2/5SAvdU0uYYlH8OURAykt5yHgNb6vKVPdRA9LSAKGxzw.woff',
 
         // Custom elements:
         '/elements/demo-card/demo-card.html',
@@ -105,7 +111,6 @@ self.addEventListener('install', function(event) {
 
 self.addEventListener('fetch', function(event) {
   self.cmd = console;
-  self.cmd.log(caches);
   event.respondWith(
     caches.match(event.request).then(function(response) {
       if (!response) {
