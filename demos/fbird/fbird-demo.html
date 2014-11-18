@@ -46,8 +46,22 @@
   <script>
 
     Polymer('fbird-demo', {
+      initialized: false,
+      init: function() {
+        if (this.initialized)
+          return;
+
+        // The fbird code needs a valid size.
+        if (this.$.frame.clientWidth > 0) {
+          this.initialized = true;
+          fbird.init({self: this, basePath: this.resolvePath('.')});
+          return;
+        }
+        // HACK: transitionend will fire after becoming visible due to opacity change animation.
+        this.$.frame.addEventListener('transitionend', this.init.bind(this));
+      },
       domReady: function() {
-        fbird.init({self: this, basePath: this.resolvePath('.')});
+        this.init();
       },
       simdToggleChange: function(e, detail, sender) {
         if (sender.checked && typeof SIMD === "undefined") {
