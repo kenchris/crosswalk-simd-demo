@@ -6,7 +6,7 @@ self.addEventListener('install', function(event) {
     caches.open('static-v1').then(function(cache) {
       return cache.addAll([
         // Web Components:
-        '/bower_components/webcomponentsjs/webcomponents.js',
+        '/bower_components/webcomponentsjs/webcomponents.min.js',
 
         // Polymer base:
         '/bower_components/polymer/polymer.html',

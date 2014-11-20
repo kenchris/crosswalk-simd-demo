@@ -14,7 +14,7 @@
 
   <link rel="manifest" href="manifest.json">
 
-  <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
   <link rel="import" href="bower_components/polymer/polymer.html">
 
   <link rel="import" href="bower_components/flatiron-director/flatiron-director.html">
@@ -89,12 +89,21 @@
       src: url(http://fonts.gstatic.com/s/robotodraft/v2/5SAvdU0uYYlH8OURAykt5yHgNb6vKVPdRA9LSAKGxzw.woff) format('woff');
     }
 
+    body[unresolved] {
+      opacity: 0;
+      display: block;
+      overflow: hidden;
+      position: relative;
+    }
     body {
-      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      transition: opacity ease-in 0.2s;
+      font-family: "RobotoDraft", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      tap-highlight-color: transparent;
       background-color: #E5E5E5;
-      font-family: 'RobotoDraft', sans-serif;
       font-weight: 300;
     }
+
     html > a {
       -webkit-touch-callout: none;
     }
@@ -164,20 +173,45 @@
 <polymer-element name="main-app">
   <template>
     <style>
-      [drawer] {
-        box-shadow: rgba(0, 0, 0, 0.0980392) 0px 2px 4px, rgba(0, 0, 0, 0.0980392) 0px 0px 3px;
-        background-color: rgb(250, 250, 250);
-      }
 
       .narrow_only {
         display: none;
       }
+
       core-drawer-panel[narrow] .narrow_only {
         display: inline-block;
       }
-      paper-item > core-label {
-        margin: 0px 10px;
+
+      core-drawer-panel[narrow][selected="drawer"] .fade-on-drawer-open {
+        opacity: 0;
       }
+
+      .fade-on-drawer-open {
+        transition: opacity 300ms ease-in-out;
+      }
+
+      core-header-panel core-menu {
+        margin: 16px 0 0 0;
+      }
+
+      core-drawer-panel core-header-panel {
+        background: #fafafa;
+        box-shadow: 1px 0 1px rgba(0, 0, 0, 0.1);
+        color: #757575;
+      }
+
+      paper-item.core-selected::shadow core-icon {
+        color: #757575;
+      }
+
+      paper-item  core-icon {
+        margin-right: 24px !important;
+      }
+
+      paper-item.core-selected {
+        background-color: #eee;
+      }
+
     </style>
 
     <flatiron-director route="{{route}}" autoHash></flatiron-director>
@@ -202,7 +236,7 @@
     </paper-dialog>
 
     <core-drawer-panel id="drawer">
-      <div drawer>
+      <core-header-panel mode="seamed" drawer>
         <core-toolbar id="toolbar">
         <div flex>Kitchensink</div>
         </core-toolbar>
@@ -218,40 +252,42 @@
             <core-label>Settings</core-label>
           </paper-item>
         </core-menu>
-      </div>
-      <div main layout vertical>
-        <core-header-panel flex mode="scroll">
-          <core-toolbar>
-            <paper-icon-button icon="menu" id="menu_button" class="narrow_only"
-                on-tap="{{toggleDrawer}}"></paper-icon-button>
-            <div flex>{{pages[routeIndex].name}}</div>
-            <paper-icon-button icon="arrow-back" on-tap="{{goBack}}"
-                disabled="{{route === pages[0].hash}}"></paper-icon-button>
-            <paper-icon-button icon="arrow-forward" on-tap="{{goForward}}"
-                disabled="{{route === pages[pages.length - 1].hash}}"></paper-icon-button>
-          </core-toolbar>
-          <div id="content" fit vertical layout>
-            <core-animated-pages flex selected="{{route}}" valueattr="hash"
-                transitions="cross-fade-all" id="pages">
-              <section hash="mandelbrot">
-                <demo-card cross-fade-all>
-                  <mandelbrot-demo suspendable></mandelbrot-demo>
-                </demo-card>
-              </section>
-              <section hash="webgl">
-                <demo-card cross-fade-all>
-                  <webgl-demo suspendable></webgl-demo>
-                </demo-card>
-              </section>
-              <section hash="fbird">
-                <demo-card cross-fade-all>
-                  <fbird-demo suspendable></fbird-demo>
-                </demo-card>
-              </section>
-            </core-animated-pages>
-          </div>
-        </core-header-panel>
-      </div>
+      </core-header-panel>
+
+      <core-header-panel flex mode="scroll" main>
+        <core-toolbar>
+          <paper-icon-button icon="menu" id="menu_button" class="narrow_only"
+              on-tap="{{toggleDrawer}}"></paper-icon-button>
+          <div flex>{{pages[routeIndex].name}}</div>
+          <paper-icon-button icon="arrow-back" on-tap="{{goBack}}"
+              disabled="{{route === pages[0].hash}}"
+              class="fade-on-drawer-open"></paper-icon-button>
+          <paper-icon-button icon="arrow-forward" on-tap="{{goForward}}"
+              disabled="{{route === pages[pages.length - 1].hash}}"
+              class="fade-on-drawer-open"></paper-icon-button>
+        </core-toolbar>
+        <div id="content" fit vertical layout>
+          <core-animated-pages flex selected="{{route}}" valueattr="hash"
+              transitions="cross-fade-all" id="pages">
+            <section hash="mandelbrot">
+              <demo-card cross-fade-all>
+                <mandelbrot-demo suspendable></mandelbrot-demo>
+              </demo-card>
+            </section>
+            <section hash="webgl">
+              <demo-card cross-fade-all>
+                <webgl-demo suspendable></webgl-demo>
+              </demo-card>
+            </section>
+            <section hash="fbird">
+              <demo-card cross-fade-all>
+                <fbird-demo suspendable></fbird-demo>
+              </demo-card>
+            </section>
+          </core-animated-pages>
+        </div>
+      </core-header-panel>
+
     </core-drawer-panel>
   </template>
 
