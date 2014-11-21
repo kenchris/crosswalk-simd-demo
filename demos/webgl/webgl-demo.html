@@ -5,6 +5,12 @@
 <polymer-element name="webgl-demo">
   <template>
     <style>
+      #viewport {
+        width: 100%;
+        height: 0;
+        padding-bottom: 100%; // height in relation to width;
+        overflow: hidden;
+      }
       #title {
         font-size: 24px;
         font-weight: 400;
@@ -29,29 +35,67 @@
         opacity: .3;
       }
     </style>
-    <div vertical layout>
+    <div id="frame" vertical layout>
       <h2 id="title" class="brand-title">Rotating cube</h2>
       <action-toggle-overlay id="player" on-change="{{onActionChange}}">
-        <div>
+        <div id="viewport">
           <div fit id='background'></div>
           <div fit id='logo'></div>
         </div>
       </action-toggle-overlay>
     </div>
   </template>
-  <script src="../../bower_components/threejs/build/three.min.js"></script>
   <script>
 
+    function callOnce(fn) {
+      var wrapper = function(event) {
+        fn();
+        event.target.removeEventListener(event.type, wrapper);
+      };
+      return wrapper;
+    }
+
+    function loadScriptAsync(src) {
+      return new Promise(
+        function(resolve, reject) {
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = src;
+          script.onload = function() {
+            resolve();
+          }
+          document.head.appendChild(script);
+        }
+      );
+    }
+
     Polymer('webgl-demo', {
-      ready: function() {
+      initialized: false,
+      domReady: function() {
         this.targetRotation = 0;
 
-        this.width = this.$.player.clientWidth;
+        this.width = 0;
+        this.geometryChange();
+        window.addEventListener('resize', this.geometryChange.bind(this), false);
 
         this.isAnimating = false;
 
-        this.init();
-        this.renderFrame();
+        var loadAndRender = function() {
+          this.initialized = true;
+          var threeSrc = "../../bower_components/threejs/build/three.min.js";
+          loadScriptAsync(threeSrc).then(function() {
+            this.init();
+            this.renderFrame();
+          }.bind(this));
+        }.bind(this);
+
+        if (!this.$.frame.clientWidth) {
+          // HACK: transitionend will fire after becoming visible due to opacity change animation.
+          this.$.frame.addEventListener('transitionend', callOnce(loadAndRender));
+          return;
+        }
+
+        loadAndRender();
       },
       renderFrame: function() {
         window.requestAnimationFrame(this.animate.bind(this));
@@ -71,15 +115,15 @@
       },
       suspendedChange: function(suspended) {
         this.$.player.disabled = suspended;
-        if (!suspended)
+        if (!suspended && this.initialized)
           this.renderFrame();
       },
       init: function() {
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
-        this.renderer.setSize(this.width, this.width);
+        this.renderer.setSize(this.width, this.height);
         this.renderer.domElement.id = "box";
         this.renderer.domElement.style.display = "block";
-        this.$.player.appendChild(this.renderer.domElement);
+        this.$.viewport.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(
             80, 1, 1, 1000);
@@ -105,22 +149,27 @@
 
         this.plane = new THREE.Mesh(geometry, material);
         this.scene.add(this.plane);
-
-        window.addEventListener('resize', this.geometryChange.bind(this), false);
       },
       geometryChange: function() {
-        var width = this.$.player.clientWidth;
+        var width = this.$.viewport.clientWidth;
+        var height = this.$.viewport.clientHeight;
 
-        if (width === this.width)
+        if (width === this.width && height === this.height)
           return;
 
         this.width = width;
+        this.height = height;
+        if (!this.initialized)
+          return;
 
         this.camera.aspect = 1;
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(this.width, this.width);
+        this.renderer.setSize(this.width, this.height);
       },
       animate: function() {
+        if (!this.initialized)
+          return;
+
         this.geometryChange();
 
         this.plane.rotation.y = this.cube.rotation.y += (this.targetRotation - this.cube.rotation.y) * 0.05;
