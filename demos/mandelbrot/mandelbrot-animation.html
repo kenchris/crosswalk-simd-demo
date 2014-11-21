@@ -13,6 +13,7 @@
       #mandel {
         width: 100%;
         display: block;
+        background-color: black;
       }
     </style>
     <div id="player">
@@ -110,6 +111,7 @@ Polymer('mandelbrot-animation', {
     isAnimating: false,
     workerCount: 1,
     maxIterations: 100,
+    initialized: false,
     init: function() {
       this.workerPool = new WorkerPool(this.resolvePath("mandelbrot-worker.js"));
 
@@ -141,6 +143,12 @@ Polymer('mandelbrot-animation', {
       this.$.control.disabled = this.disabled;
     },
     onActionChange: function() {
+      if (!this.initialized) {
+        this.init();
+        this.clear();
+        this.update();
+      }
+
       this.isAnimating = this.$.control.checked;
       if (!this.isAnimating) {
         self.fire("fps-change", { value: 0 });
@@ -277,9 +285,6 @@ Polymer('mandelbrot-animation', {
       advanceFrame();
     },
     ready: function () {
-      this.init();
-      this.clear();
-      this.update();
     }
   });
 </script>
