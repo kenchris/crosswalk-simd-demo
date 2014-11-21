@@ -31,7 +31,6 @@
         background-size: contain;
       }
       #box {
-        transition: "opacity .2s cubic-bezier(.4,0,.2,1)";
         opacity: .3;
       }
     </style>
@@ -71,7 +70,7 @@
 
     Polymer('webgl-demo', {
       initialized: false,
-      domReady: function() {
+      init: function() {
         this.targetRotation = 0;
 
         this.width = 0;
@@ -80,22 +79,23 @@
 
         this.isAnimating = false;
 
-        var loadAndRender = function() {
+        if (this.$.frame.clientWidth > 0) {
           this.initialized = true;
-          var threeSrc = "../../bower_components/threejs/build/three.min.js";
-          loadScriptAsync(threeSrc).then(function() {
-            this.init();
-            this.renderFrame();
-          }.bind(this));
-        }.bind(this);
-
-        if (!this.$.frame.clientWidth) {
-          // HACK: transitionend will fire after becoming visible due to opacity change animation.
-          this.$.frame.addEventListener('transitionend', callOnce(loadAndRender));
+          this.initRender();
+          this.renderFrame();
           return;
         }
 
-        loadAndRender();
+        // HACK: transitionend will fire after becoming visible due to opacity change animation.
+        this.$.frame.addEventListener('transitionend', callOnce(this.init.bind(this)));
+      },
+      domReady: function() {
+        var threeSrc = this.resolvePath(
+          "../../bower_components/threejs/build/three.min.js");
+
+        loadScriptAsync(threeSrc).then(function() {
+          this.init();
+        }.bind(this));
       },
       renderFrame: function() {
         window.requestAnimationFrame(this.animate.bind(this));
@@ -118,11 +118,12 @@
         if (!suspended && this.initialized)
           this.renderFrame();
       },
-      init: function() {
+      initRender: function() {
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.renderer.setSize(this.width, this.height);
         this.renderer.domElement.id = "box";
         this.renderer.domElement.style.display = "block";
+        this.renderer.domElement.style.opacity = 0;
         this.$.viewport.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.PerspectiveCamera(

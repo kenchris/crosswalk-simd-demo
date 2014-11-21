@@ -11,7 +11,9 @@
       #frame {
         display: block;
         width: 100%;
-        height: 400px;
+        height: 0;
+        padding-bottom: 70%; // height in relation to width;
+        overflow: hidden;
         position: relative;
         background: url(../webgl/textures/bg-tile.png);
       }
@@ -42,8 +44,29 @@
     </div>
     <paper-toast id="error" text="SIMD isn't supported on your system.">
   </template>
-  <script src="fbird.js" type="text/javascript"></script>
   <script>
+
+    function callOnce(fn) {
+      var wrapper = function(event) {
+        fn();
+        event.target.removeEventListener(event.type, wrapper);
+      };
+      return wrapper;
+    }
+
+    function loadScriptAsync(src) {
+      return new Promise(
+        function(resolve, reject) {
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = src;
+          script.onload = function() {
+            resolve();
+          }
+          document.head.appendChild(script);
+        }
+      );
+    }
 
     Polymer('fbird-demo', {
       initialized: false,
@@ -58,10 +81,12 @@
           return;
         }
         // HACK: transitionend will fire after becoming visible due to opacity change animation.
-        this.$.frame.addEventListener('transitionend', this.init.bind(this));
+        this.$.frame.addEventListener('transitionend', callOnce(this.init.bind(this)));
       },
       domReady: function() {
-        this.init();
+        loadScriptAsync(this.resolvePath("fbird.js")).then(function() {
+          this.init();
+        }.bind(this));
       },
       simdToggleChange: function(e, detail, sender) {
         if (sender.checked && typeof SIMD === "undefined") {
@@ -77,6 +102,9 @@
         this.onActionChange();
       },
       onActionChange: function() {
+        if (!this.initialized)
+          return;
+
         if (this.$.player.checked)
           fbird.start();
         else
