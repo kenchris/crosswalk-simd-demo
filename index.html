@@ -359,9 +359,8 @@
       function(e) {
         document.body.classList.toggle('core-narrow', e.detail.matches);
     });
-
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw-deploy.js', {
+      navigator.serviceWorker.register('/sw.js', {
       }).then(function(sw) {
         console.log("Service worker registration worked!");
       }).catch(function() {

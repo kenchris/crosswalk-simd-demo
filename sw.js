@@ -1,4 +1,4 @@
-var caches = require('./caches');
+importScripts('serviceworker-cache-polyfill.js');
 
 self.addEventListener('install', function(event) {
   console.log("SW installed");

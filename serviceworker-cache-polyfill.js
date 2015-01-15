@@ -1,5 +1,3 @@
-// Cannot feature-detect, as we have these implemented but they reject
-
 if (!Cache.prototype.add) {
   Cache.prototype.add = function add(request) {
     return this.addAll([request]);
@@ -73,7 +71,6 @@ if (!CacheStorage.prototype.match) {
       return cacheNames.reduce(function(chain, cacheName) {
         return chain.then(function() {
           return match || caches.open(cacheName).then(function(cache) {
-            console.log(cache);
             return cache.match(request, opts);
           }).then(function(response) {
             match = response;
@@ -84,5 +81,3 @@ if (!CacheStorage.prototype.match) {
     });
   };
 }
-
-module.exports = self.caches;

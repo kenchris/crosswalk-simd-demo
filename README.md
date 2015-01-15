@@ -14,14 +14,6 @@ Then run the following to install the JS libraries and Web Components dependenci
 
 $ bower install
 
-To generate the Service Worker (for offline to work) you much first install the dependencies using NPM
-
-$ nmp install
-
-Now you can run the Grunt task which generates the Service Worker
-
-$ grunt
-
 In order to test you need to run a web server. Using python that is quite easy
 
 $ python -m SimpleHTTPServer 8080
