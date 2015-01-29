@@ -33,7 +33,6 @@
   <link rel="import" href="elements/demo-card/demo-card.html">
 
   <link rel="import" href="demos/mandelbrot/mandelbrot-demo.html">
-  <link rel="import" href="demos/webgl/webgl-demo.html">
   <link rel="import" href="demos/fbird/fbird-demo.html">
 
   <style shim-shadowdom>
@@ -277,11 +276,6 @@
                 <mandelbrot-demo suspendable></mandelbrot-demo>
               </demo-card>
             </section>
-            <section hash="webgl">
-              <demo-card cross-fade-all>
-                <webgl-demo suspendable></webgl-demo>
-              </demo-card>
-            </section>
             <section hash="fbird">
               <demo-card cross-fade-all>
                 <fbird-demo suspendable></fbird-demo>
@@ -300,7 +294,6 @@
       ready: function() {
         this.pages = [
           { name: 'Mandelbrot', hash: 'mandelbrot' },
-          { name: 'WebGL', hash: 'webgl' },
           { name: 'Flocking Birds', hash: 'fbird' },
           ];
         this.route = this.route || this.pages[0].hash;
@@ -359,14 +352,15 @@
       function(e) {
         document.body.classList.toggle('core-narrow', e.detail.matches);
     });
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', {
+    /* Disable Service Worker for now.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', {
       }).then(function(sw) {
         console.log("Service worker registration worked!");
       }).catch(function() {
         console.log("Service worker registration failed :(");
       });
-    }
+    } */
   </script>
   <main-app unresolved></main-app>
 </body>
