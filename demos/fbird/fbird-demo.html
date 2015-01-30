@@ -85,8 +85,6 @@
           fbird.init({self: this, basePath: this.resolvePath('.')});
           return;
         }
-        // HACK: transitionend will fire after becoming visible due to opacity change animation.
-        this.$.frame.addEventListener('transitionend', callOnce(this.init.bind(this)));
       },
       domReady: function() {
         loadScriptAsync(this.resolvePath("fbird.js")).then(function() {
