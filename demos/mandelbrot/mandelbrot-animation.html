@@ -64,7 +64,9 @@ WorkerPool = function(src) {
   }
 
   function restoreBuffer(index, buffer) {
-    activeWorkers[index].buffer = buffer;
+    var worker = activeWorkers[index];
+    if (worker)
+      worker.buffer = buffer;
   }
 
   function terminateLastWorker() {
