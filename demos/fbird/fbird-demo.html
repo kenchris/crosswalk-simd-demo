@@ -107,8 +107,11 @@
         this.onActionChange();
       },
       onActionChange: function() {
-        if (!this.initialized)
+        if (typeof(fbird) == "undefined")
           return;
+
+        if (!this.initialized)
+          this.init();
 
         if (this.$.player.checked)
           fbird.start();
