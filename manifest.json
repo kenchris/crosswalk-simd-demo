@@ -1,5 +1,5 @@
 {
-  "name": "XWalk Showcase",
+  "name": "SIMD demos",
   "xwalk_description": "A showcase of Crosswalk features",
   "icons": [
     {
@@ -46,5 +46,5 @@
   ],
   "start_url": "index.html",
   "display": "standalone",
-  "orientation": "any"
+  "orientation": "portrait"
 }
