@@ -29,8 +29,7 @@
   <link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
   <link rel="import" href="bower_components/paper-item/paper-item.html">
   <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
-
-  <link rel="import" href="elements/demo-card/demo-card.html">
+  <link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
 
   <link rel="import" href="demos/mandelbrot/mandelbrot-demo.html">
   <link rel="import" href="demos/fbird/fbird-demo.html">
@@ -214,6 +213,22 @@
         background-color: #eee;
       }
 
+      paper-tab {
+        color: white;
+      }
+
+      paper-tabs {
+        background-color: #03A9F4; // 500 color (lightblue).
+      }
+
+      paper-tabs paper-tab::shadow #ink {
+        color: #EC407A;
+      }
+
+      paper-tabs::shadow #selectionBar {
+         background-color: #EC407A;
+      }
+
     </style>
 
     <flatiron-director route="{{route}}" autoHash></flatiron-director>
@@ -263,13 +278,18 @@
           <div flex>SIMD demos</div>
         </core-toolbar>
         <div id="content" fit vertical layout>
+          <paper-tabs valueattr="hash" selected="{{route}}">
+            <template repeat="{{page in pages}}">
+              <paper-tab hash="{{page.hash}}">{{page.name | toUpperCase}}</paper-tab>
+            </template>
+          </paper-tabs>
           <core-animated-pages flex selected="{{route}}" valueattr="hash"
               transitions="cross-fade-all" id="pages">
             <section hash="mandelbrot">
-              <mandelbrot-demo suspendable cross-fade-all fit></mandelbrot-demo>
+              <mandelbrot-demo suspendable cross-fade-all></mandelbrot-demo>
             </section>
             <section hash="fbird">
-              <fbird-demo suspendable></fbird-demo>
+              <fbird-demo suspendable cross-fade-all></fbird-demo>
             </section>
           </core-animated-pages>
         </div>
@@ -290,6 +310,9 @@
       },
       domReady: function() {
         this.style.opacity = 1;
+      },
+      toUpperCase: function(value) {
+        return value.toUpperCase();
       },
       routeChanged: function(oldRoute, newRoute) {
         if (newRoute === 'settings') {
