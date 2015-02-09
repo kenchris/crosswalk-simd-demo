@@ -15,7 +15,6 @@
         display: block;
         width: 100%;
         height: 100%;
-        background-color: gray;
       }
       #fps, #birds {
         padding-left: 10px;
@@ -33,9 +32,9 @@
               on-change="{{ simdToggleChange }}"></paper-toggle-button>
         </div>
       </div>
-      <div flex>
-        <action-toggle-overlay id="player" on-change="{{onActionChange}}" flex>
-          <div id="frame">
+      <div vertical layout flex>
+        <action-toggle-overlay id="player" on-change="{{onActionChange}}" flex vertical layout>
+          <div id="frame" fit>
               <canvas id="canvas"></canvas>
           </div>
         </action-toggle-overlay>

@@ -160,6 +160,7 @@ var fbird = (function() {
     function init() {
       if (element.tagName === "CANVAS") {
         useCanvas = true;
+        console.log("Using canvas!");
         ctx = element.getContext("2d");
       }
 
