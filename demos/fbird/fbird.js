@@ -1,72 +1,41 @@
 // Original author: Peter Jensen
 
 var fbird = (function() {
+  var initialized = false;
+  var maxBirds = 100000;
+  var params = null;
+  var dom = null;
+  var element = null; // Target element (eg. canvas element)
 
-  var config = {
-    maxBirds: 100000
-  };
-
-  var globals = {
-    surface: null,
-    params: null,
-    initialized: false
-  };
-
-  var logger = function () {
-    var traceEnabled = true;
-
-    function trace(msg) {
-      if (traceEnabled) {
-        console.log(msg);
-      }
-    }
-
-    function error(msg) {
-      console.log(msg);
-    }
-
-    function traceDisable() {
-      traceEnabled = false;
-    }
-
-    function traceEnable() {
-      traceEnabled = true;
-    }
-
-    return {
-      trace: trace,
-      error: error,
-      traceEnable: traceEnable,
-      traceDisable: traceDisable
-    };
-  }();
-
-  // Keep track of bird positions and velocities
-
-  var birds = function() {
-
+  function BirdTracker() {
     var maxPos      = 1000.0;
     var actualBirds = 0;
-    var posArray    = new Float32Array(config.maxBirds);
-    var velArray    = new Float32Array(config.maxBirds);
+    var posArray    = new Float32Array(maxBirds);
+    var velArray    = new Float32Array(maxBirds);
 
     var accelData = {
-      steps:     20000,
-      interval:  0.002,  // time in millis seconds for each accel value
-      values:   [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0].map(function(v) { return 50 * v; }),
+      steps: 20000,
+      interval: 0.002,  // time in ms for each accel value
+      values: [
+          10.0, 9.0, 8.0, 7.0, 6.0, 5.0,
+          6.0, 7.0, 8.0, 9.0, 10.0
+        ].map(function(v) {
+          return 50 * v;
+        }
+      ),
       valueConst: 1000.0
     };
 
     function init(maxPosition) {
       actualBirds = 0;
       maxPos = maxPosition;
-      if (globals.params.accelSteps > 0)
-        accelData.steps = globals.params.accelSteps;
+      if (params.accelSteps > 0)
+        accelData.steps = params.accelSteps;
     }
 
     function addBird(pos, vel) {
-      if (actualBirds >= config.maxBirds) {
-        logger.error("maxBirds exceeded");
+      if (actualBirds >= maxBirds) {
+        console.error("maxBirds exceeded");
         return -1;
       }
 
@@ -137,15 +106,15 @@ var fbird = (function() {
       var subTimeDeltaSquaredx4 = SIMD.float32x4.mul(subTimeDeltax4, subTimeDeltax4);
       var point5x4              = SIMD.float32x4.splat(0.5);
 
-      for (var i = 0, len = (actualBirds+3)>>2; i < len; ++i) {
+      for (var i = 0, len = (actualBirds+3) >> 2; i < len; ++i) {
         var accelIndex = 0;
         var newVelTruex4;
         var newPosx4 = posArrayx4.getAt(i);
         var newVelx4 = velArrayx4.getAt(i);
         for (var a = 0; a < steps; ++a) {
-          var accel              = accelData.values[accelIndex];
-          var accelx4            = SIMD.float32x4.splat(accel);
-          accelIndex             = (accelIndex + 1) % accelCount;
+          var accel     = accelData.values[accelIndex];
+          var accelx4   = SIMD.float32x4.splat(accel);
+          accelIndex    = (accelIndex + 1) % accelCount;
           var posDeltax4;
           posDeltax4 = SIMD.float32x4.mul(point5x4, SIMD.float32x4.mul(accelx4, subTimeDeltaSquaredx4));
           posDeltax4 = SIMD.float32x4.add(posDeltax4, SIMD.float32x4.mul(newVelx4,subTimeDeltax4));
@@ -165,7 +134,7 @@ var fbird = (function() {
     }
 
     function dumpOne(index) {
-      logger.trace(index + ". pos:" + posArray[index] + ", vel:" + velArray[index]);
+      console.log(index + ". pos:" + posArray[index] + ", vel:" + velArray[index]);
     }
 
     return {
@@ -178,8 +147,7 @@ var fbird = (function() {
       posOf:                  posOf,
       dumpOne:                dumpOne
     };
-
-  }();
+  };
 
   var surface;
   function Surface() {
@@ -189,10 +157,10 @@ var fbird = (function() {
     var sprites = [];
     var spritePositions = [];
 
-    function init(element) {
-      if (globals.params.self.$.element.tagName === "CANVAS") {
+    function init() {
+      if (element.tagName === "CANVAS") {
         useCanvas = true;
-        ctx = globals.params.self.$.element.getContext("2d");
+        ctx = element.getContext("2d");
       }
 
       sprites = [];
@@ -248,7 +216,7 @@ var fbird = (function() {
 
     function createImageSprite(imageSrc, width, height, scale) {
       if (useCanvas) {
-        logger.error("Cannot create canvas image sprite");
+        console.error("Cannot create canvas image sprite");
         return 0;
       }
 
@@ -283,7 +251,7 @@ var fbird = (function() {
     function placeDOMSprite(spriteId, x, y) {
       var img = sprites[spriteId].img;
       var imgClone = img.cloneNode(true);
-      globals.params.self.$.frame.appendChild(imgClone);
+      params.self.$.frame.appendChild(imgClone);
       imgClone.style.left = x + "px";
       imgClone.style.top = y + "px";
       spritePositions.push({img: imgClone, x: x, y: y});
@@ -361,7 +329,7 @@ var fbird = (function() {
     };
   };
 
-  var fpsAccounting = function() {
+  function FPSCounter() {
     var targetFps         = 30.0;
     var targetFpsMax      = 30.5;
     var targetFpsMin      = 29.5;
@@ -407,7 +375,7 @@ var fbird = (function() {
       return adjustmentMade;
     }
 
-    function currentFps(time) {
+    function currentFps() {
       return currentFpsValue;
     }
 
@@ -415,8 +383,7 @@ var fbird = (function() {
       currentFps:  currentFps,
       adjustBirds: adjustBirds
     };
-  }();
-
+  };
 
   function Animation() {
     var animate;
@@ -432,11 +399,11 @@ var fbird = (function() {
     }
 
     function randomY() {
-      return Math.floor(Math.random() * dom.$.element.clientHeight / 2);
+      return Math.floor(Math.random() * element.clientHeight / 2);
     }
 
     function randomX() {
-      return Math.floor(Math.random() * dom.$.element.clientWidth);
+      return Math.floor(Math.random() * element.clientWidth);
     }
 
     function getStartValue(start, max, randomFunc) {
@@ -451,8 +418,8 @@ var fbird = (function() {
 
     function addBird(birdSprite) {
       var birdWidth = surface.dimOfSprite(birdSprite).width;
-      var x = getStartValue(globals.params.startX, globals.params.self.$.element.clientWidth - birdWidth, randomXY);
-      var y = getStartValue(globals.params.startY, globals.params.self.$.element.clientHeight / 2, randomXY);
+      var x = getStartValue(params.startX, element.clientWidth - birdWidth, randomXY);
+      var y = getStartValue(params.startY, element.clientHeight / 2, randomXY);
       var birdId   = birds.addBird(y, 0.0);
       var spriteId = surface.placeSprite(birdSprite, x, y);
       allBirds.push({birdId: birdId, spriteId: spriteId, startX: x, startY: y});
@@ -507,7 +474,7 @@ var fbird = (function() {
 
     function moveAll(time) {
       if (animate) {
-        if (globals.params.useSetTimeout) {
+        if (params.useSetTimeout) {
           setTimeout(moveAll, 1);
           time = performance.now();
         } else {
@@ -518,16 +485,16 @@ var fbird = (function() {
       if (typeof time === "undefined")
         return;
 
-      if (globals.params.adjustBirds) {
+      if (params.adjustBirds) {
         if (fpsAccounting.adjustBirds(time, allBirds.length, birdSprite, addBirds, removeBirds))
-          globals.params.self.$.birds.innerText = allBirds.length;
+          params.self.$.birds.innerText = allBirds.length;
 
-        globals.params.self.$.fps.innerText = fpsAccounting.currentFps().toFixed(0);
+        params.self.$.fps.innerText = fpsAccounting.currentFps().toFixed(0);
     }
 
       if (lastTime !== 0.0) {
         var timeDelta = time - lastTime;
-        if (globals.params.constantAccel) {
+        if (params.constantAccel) {
           birds.updateAllConstantAccel(timeDelta);
         } else if (useSIMD) {
           birds.updateAllSIMD(time - lastTime);
@@ -545,29 +512,23 @@ var fbird = (function() {
     }
 
     function init() {
-      // initalize module variables
       useSIMD  = false;
       allBirds = [];
       lastTime = 0.0;
 
-      var dom = globals.params.self;
-
-      if (globals.params.useCanvas)
-        dom.$.element = dom.$.canvas;
-      else
-        dom.$.element = dom.$.frame;
+      element = (params.useCanvas) ? dom.canvas : dom.frame;
 
       surface = Surface(dom);
       surface.init();
 
-      birdSpriteBase = surface.createImageSprite(globals.params.basePath + "fbird-spy2.png", 34, 25, globals.params.scale);
-      birdSpriteSIMD = surface.createImageSprite(globals.params.basePath + "fbird2-spy.png", 34, 25, globals.params.scale);
+      birdSpriteBase = surface.createImageSprite(params.basePath + "fbird-spy2.png", 34, 25, params.scale);
+      birdSpriteSIMD = surface.createImageSprite(params.basePath + "fbird2-spy.png", 34, 25, params.scale);
       birdSprite     = birdSpriteBase;
 
       var birdDim = surface.dimOfSprite(birdSpriteBase);
-      birds.init(dom.$.element.clientHeight - birdDim.height);
+      birds.init(element.clientHeight - birdDim.height);
 
-      addBirds(birdSprite, globals.params.initialBirdCount);
+      addBirds(birdSprite, params.initialBirdCount);
     }
 
     function start() {
@@ -596,23 +557,8 @@ var fbird = (function() {
     };
   };
 
-  // parse URL parameters
-
-  var parameters = function () {
-
-    // default parameters
-    var parameters = {
-      "adjustBirds":        true,
-      "initialBirdCount":   20,
-      "useCanvas":          false,
-      "constantAccel":      false,
-      "scale":              1.0,
-      "startX":             "random",
-      "startY":             "random",
-      "initialize":         true,
-      "useSetTimeout":      false,
-      "accelSteps":         -1
-    };
+  function URLParamsParser(defaults) {
+    var parameters = defaults;
 
     function setValue(key, value) {
       if (typeof value === "string") {
@@ -628,7 +574,7 @@ var fbird = (function() {
       parameters[key] = value;
     }
 
-    function parse(options) {
+    this.parse = function(options) {
       if (typeof options !== "undefined") {
         for (var key in options) {
           if (options.hasOwnProperty(key)) {
@@ -647,38 +593,44 @@ var fbird = (function() {
       }
       return parameters;
     }
+  }
 
-    return {
-      parse: parse
-    };
-
-  }();
+  var animation = Animation();
+  var birds = BirdTracker();
+  var fpsAccounting = FPSCounter();
 
   function init(options) {
-    globals.params = parameters.parse(options);
-    this.animation = Animation();
-    if (globals.params.initialize) {
-      this.animation.init();
-      globals.initialized = true;
-    }
+    params = new URLParamsParser({
+      "adjustBirds":        true,
+      "initialBirdCount":   20,
+      "useCanvas":          false,
+      "constantAccel":      false,
+      "scale":              1.0,
+      "startX":             "random",
+      "startY":             "random",
+      "useSetTimeout":      false,
+      "accelSteps":         -1
+    }).parse(options);
+
+    dom = params.self.$;
+    animation.init();
+    initialized = true;
   }
 
   function close() {
-    if (globals.initialized)
-      this.animation.close();
-    globals.initialized = false;
+    if (initialized)
+      animation.close();
+    initialized = false;
   }
 
   function start() {
-    if (globals.initialized) {
-      this.animation.start();
-    }
+    if (initialized)
+      animation.start();
   }
 
   function stop() {
-    if (globals.initialized) {
-      this.animation.stop();
-    }
+    if (initialized)
+      animation.stop();
   }
 
   return {
