@@ -29,6 +29,12 @@
               on-change="{{ simdToggleChange }}"></paper-toggle-button>
         </div>
         <div style="height: 20px"></div>
+        <div justified horizontal layout>
+          <div flex>Low resolution</div>
+          <paper-toggle-button id="lowres_button" class="blue"
+              on-change="{{ lowresToggleChange }}"></paper-toggle-button>
+        </div>
+        <div style="height: 20px"></div>
         <div>
           <div center horizontal layout style="padding-bottom: 10px">
             <span>Number of workers</span><span id="counter">{{workerCount}}</span>
@@ -70,6 +76,24 @@
         this.resetFpsCount();
         this.$.player.setAttribute("useSIMD", sender.checked);
       },
+      lowresToggleChange: function(e, detail, sender) {
+        this.resetFpsCount();
+        this.$.player.setAttribute("scaledown", sender.checked);
+      },
+      fpsChange: function(e, detail, sender) {
+        this.fpsTotal += detail.value;
+        this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)
+        this.$.fps.textContent = detail.value.toFixed(0);
+      },
+      workerChange: function(e, detail, sender) {
+        this.resetFpsCount();
+        this.workerCount = sender.value;
+        this.$.player.setAttribute("workerCount", this.workerCount);
+      }
+    });
+
+  </script>
+</polymer-element>
       fpsChange: function(e, detail, sender) {
         this.fpsTotal += detail.value;
         this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)

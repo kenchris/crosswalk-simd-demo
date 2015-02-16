@@ -2,7 +2,7 @@
 
 <link rel="import" href="../../elements/action-toggle-overlay/action-toggle-overlay.html">
 
-<polymer-element name="mandelbrot-animation" attributes="useSIMD workerCount disabled">
+<polymer-element name="mandelbrot-animation" attributes="useSIMD scaledown workerCount disabled">
   <template>
     <style>
       #mandel {
@@ -102,6 +102,7 @@ WorkerPool = function(src) {
 Polymer('mandelbrot-animation', {
     publish: {
       useSIMD: false,
+      downscale: false,
       workerCount: 1,
       disabled: false,
     },
@@ -195,6 +196,7 @@ Polymer('mandelbrot-animation', {
             yc:             yc,
             scale:          scale,
             use_simd:       self.useSIMD,
+            downscale:      self.scaledown,
             max_iterations: self.maxIterations
           });
         request_count++;

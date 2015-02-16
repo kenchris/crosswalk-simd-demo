@@ -9,6 +9,7 @@ var max_iterations;
 var image_buffer;
 var width;
 var heigth;
+var downscale;
 
 function computeFrame(e) {
   if (typeof e.data.terminate !== "undefined") {
@@ -18,8 +19,15 @@ function computeFrame(e) {
   var message = e.data.message;
   max_iterations = message.max_iterations;
   image_buffer = new Uint8ClampedArray(e.data.buffer);
-  width        = message.width;
-  height       = message.height;
+
+  width = message.width;
+  height = message.height;
+  downscale = (message.downscale === "true") ? true : false;
+
+  if (downscale) {
+    width /= 2;
+    height /= 2;
+  }
 
   drawMandelbrot(message);
   self.postMessage({worker_index: e.data.worker_index, message: message, buffer: e.data.buffer}, [e.data.buffer]);
@@ -71,7 +79,7 @@ function mandelx4(c_re4, c_im4) {
 
 function mapColorAndSetPixel(x, y, value) {
   var rgb, r, g, b;
-  var index = 4*(x + width * y);
+
   if (value === max_iterations) {
     r = 0;
     g = 0;
@@ -82,15 +90,30 @@ function mapColorAndSetPixel(x, y, value) {
     g = (rgb >> 8) & 0xff;
     b = (rgb >> 16) & 0xff;
   }
-  image_buffer[index]   = r;
-  image_buffer[index + 1] = g;
-  image_buffer[index + 2] = b;
-  image_buffer[index + 3] = 255;
+
+  if (!downscale) {
+      var index = 4 * (x + width * y);
+      image_buffer[index]   = r;
+      image_buffer[index + 1] = g;
+      image_buffer[index + 2] = b;
+      image_buffer[index + 3] = 255;
+  } else {
+    for (var i = 0; i < 2; i++) {
+      for (var j = 0; j < 2; j++) {
+        var index = 4 * 2 * (x + 2 * width * y + width * j) + 4 * i;
+        image_buffer[index]   = r;
+        image_buffer[index + 1] = g;
+        image_buffer[index + 2] = b;
+        image_buffer[index + 3] = 255;
+      }
+    }
+  }
 }
 
 function drawMandelbrot (params) {
-  var width        = params.width;
-  var height       = params.height;
+  var adjust       = (params.downscale === "true") ? 2 : 1;
+  var width        = params.width / adjust;
+  var height       = params.height / adjust;
   var scale        = params.scale;
   var use_simd     = params.use_simd;
   var xc           = params.xc;
