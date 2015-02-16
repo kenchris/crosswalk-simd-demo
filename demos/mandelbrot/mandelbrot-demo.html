@@ -30,9 +30,9 @@
         </div>
         <div style="height: 20px"></div>
         <div justified horizontal layout>
-          <div flex>Low resolution</div>
-          <paper-toggle-button id="lowres_button" class="blue"
-              on-change="{{ lowresToggleChange }}"></paper-toggle-button>
+          <div flex>High resolution</div>
+          <paper-toggle-button id="highres_button" class="blue"
+              on-change="{{ highresToggleChange }}"></paper-toggle-button>
         </div>
         <div style="height: 20px"></div>
         <div>
@@ -76,9 +76,9 @@
         this.resetFpsCount();
         this.$.player.setAttribute("useSIMD", sender.checked);
       },
-      lowresToggleChange: function(e, detail, sender) {
+      highresToggleChange: function(e, detail, sender) {
         this.resetFpsCount();
-        this.$.player.setAttribute("scaledown", sender.checked);
+        this.$.player.setAttribute("downscale", !sender.checked);
       },
       fpsChange: function(e, detail, sender) {
         this.fpsTotal += detail.value;

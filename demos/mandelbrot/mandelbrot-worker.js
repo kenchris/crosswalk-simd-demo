@@ -22,7 +22,7 @@ function computeFrame(e) {
 
   width = message.width;
   height = message.height;
-  downscale = (message.downscale === "true") ? true : false;
+  downscale = message.downscale;
 
   if (downscale) {
     width /= 2;
@@ -111,7 +111,7 @@ function mapColorAndSetPixel(x, y, value) {
 }
 
 function drawMandelbrot (params) {
-  var adjust       = (params.downscale === "true") ? 2 : 1;
+  var adjust       = params.downscale ? 2 : 1;
   var width        = params.width / adjust;
   var height       = params.height / adjust;
   var scale        = params.scale;
