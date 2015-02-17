@@ -149,7 +149,6 @@ var fbird = (function() {
     };
   };
 
-  var surface;
   function Surface() {
     var useCanvas = false;
     var ctx;
@@ -157,9 +156,9 @@ var fbird = (function() {
     var sprites = [];
     var spritePositions = [];
 
-    function init() {
-      if (element.tagName === "CANVAS") {
-        useCanvas = true;
+    function init(useCanvas) {
+      useCanvas = useCanvas;
+      if (useCanvas) {
         console.log("Using canvas!");
         ctx = element.getContext("2d");
       }
@@ -386,7 +385,7 @@ var fbird = (function() {
     };
   };
 
-  function Animation() {
+  function Animator() {
     var animate;
     var useSIMD = false;
     var birdSprite;
@@ -395,19 +394,19 @@ var fbird = (function() {
     var allBirds = [];
     var lastTime = 0.0;
 
-    function randomXY(max) {
+    this.randomXY = function(max) {
       return Math.floor(Math.random() * max);
     }
 
-    function randomY() {
-      return Math.floor(Math.random() * element.clientHeight / 2);
+    this.randomY = function() {
+      return Math.floor(Math.random() * this.element.clientHeight / 2);
     }
 
-    function randomX() {
-      return Math.floor(Math.random() * element.clientWidth);
+    this.randomX = function() {
+      return Math.floor(Math.random() * this.element.clientWidth);
     }
 
-    function getStartValue(start, max, randomFunc) {
+    this.getStartValue = function(start, max, randomFunc) {
       if (start === "random")
         return randomFunc(max);
 
@@ -417,42 +416,39 @@ var fbird = (function() {
       return parseInt(start);
     }
 
-    function addBird(birdSprite) {
-      var birdWidth = surface.dimOfSprite(birdSprite).width;
-      var x = getStartValue(params.startX, element.clientWidth - birdWidth, randomXY);
-      var y = getStartValue(params.startY, element.clientHeight / 2, randomXY);
+    this.addBird = function(birdSprite) {
+      var birdWidth = this.surface.dimOfSprite(this.birdSprite).width;
+      var x = this.getStartValue(params.startX, this.element.clientWidth - birdWidth, this.randomXY.bind(this));
+      var y = this.getStartValue(params.startY, this.element.clientHeight / 2, this.randomXY.bind(this));
       var birdId   = birds.addBird(y, 0.0);
-      var spriteId = surface.placeSprite(birdSprite, x, y);
-      allBirds.push({birdId: birdId, spriteId: spriteId, startX: x, startY: y});
+      var spriteId = this.surface.placeSprite(this.birdSprite, x, y);
+      this.allBirds.push({birdId: birdId, spriteId: spriteId, startX: x, startY: y});
     }
 
-    function removeLastBird() {
-      if (allBirds.length > 0) {
+    this.removeLastBird = function() {
+      if (this.allBirds.length > 0) {
         birds.removeLastBird();
-        surface.removeLastSprite();
-        allBirds.pop();
+        this.surface.removeLastSprite();
+        this.allBirds.pop();
       }
     }
 
-    function addBirds(bird, count) {
-      for (var i = 0; i < count; ++i) {
-        addBird(bird);
-      }
+    this.addBirds = function(bird, count) {
+      for (var i = 0; i < count; ++i)
+        this.addBird(bird);
     }
 
-    function removeBirds(count) {
-      for (var i = 0; i < count; ++i) {
-        removeLastBird();
-      }
+    this.removeBirds = function(count) {
+      for (var i = 0; i < count; ++i)
+        this.removeLastBird();
     }
 
-    function removeAllBirds() {
-      while (allBirds.length > 0) {
-        removeLastBird();
-      }
+    this.removeAllBirds = function() {
+      while (this.allBirds.length > 0)
+        this.removeLastBird();
     }
 
-    function blackDotSprite(width, height) {
+    this.blackDotSprite = function(width, height) {
       var rgbaValues = new Uint8ClampedArray(width * height * 4);
       for (var i = 0, n = width * height * 4; i < n; i += 4) {
         rgbaValues[i] = 0;
@@ -460,26 +456,27 @@ var fbird = (function() {
         rgbaValues[i+2] = 0;
         rgbaValues[i+3] = 255;
       }
-      return surface.createSprite(width, height, rgbaValues);
+      return this.surface.createSprite(width, height, rgbaValues);
     }
 
-    function setUseSIMD(use) {
-      useSIMD = use;
-      if (useSIMD)
-        birdSprite = birdSpriteBase;
+    this.setUseSIMD = function(use) {
+      this.useSIMD = use;
+      this.removeAllBirds();
+      if (!this.useSIMD)
+        this.birdSprite = this.birdSpriteBase;
       else
-        birdSprite = birdSpriteSIMD;
+        this.birdSprite = this.birdSpriteSIMD;
     }
 
     // main animation function.  One new frame is created and the next one is requested
 
-    function moveAll(time) {
-      if (animate) {
+    this.moveAll = function(time) {
+      if (this.animate) {
         if (params.useSetTimeout) {
-          setTimeout(moveAll, 1);
+          setTimeout(this.moveAll.bind(this), 1);
           time = performance.now();
         } else {
-          requestAnimationFrame(moveAll);
+          requestAnimationFrame(this.moveAll.bind(this));
         }
       }
 
@@ -487,75 +484,67 @@ var fbird = (function() {
         return;
 
       if (params.adjustBirds) {
-        if (fpsAccounting.adjustBirds(time, allBirds.length, birdSprite, addBirds, removeBirds))
-          params.self.$.birds.innerText = allBirds.length;
+        if (fpsAccounting.adjustBirds(time, this.allBirds.length, this.birdSprite, this.addBirds.bind(this), this.removeBirds.bind(this)))
+          params.self.$.birds.innerText = this.allBirds.length;
 
         params.self.$.fps.innerText = fpsAccounting.currentFps().toFixed(0);
-    }
+      }
 
-      if (lastTime !== 0.0) {
-        var timeDelta = time - lastTime;
+      if (this.lastTime !== 0.0) {
+        var timeDelta = time - this.lastTime;
         if (params.constantAccel) {
           birds.updateAllConstantAccel(timeDelta);
-        } else if (useSIMD) {
-          birds.updateAllSIMD(time - lastTime);
+        } else if (this.useSIMD) {
+          birds.updateAllSIMD(time - this.lastTime);
         } else {
-          birds.updateAll(time - lastTime);
+          birds.updateAll(time - this.lastTime);
         }
       }
-      lastTime = time;
+      this.lastTime = time;
 
-      for (var i = 0; i < allBirds.length; ++i) {
-        var bird = allBirds[i];
+      for (var i = 0; i < this.allBirds.length; ++i) {
+        var bird = this.allBirds[i];
         var pos = birds.posOf(bird.birdId);
-        surface.moveSprite(bird.spriteId, bird.startX, pos);
+        this.surface.moveSprite(bird.spriteId, bird.startX, pos);
       }
     }
 
-    function init() {
-      useSIMD  = false;
-      allBirds = [];
-      lastTime = 0.0;
+    this.init = function() {
+      this.useSIMD  = false;
+      this.allBirds = [];
+      this.lastTime = 0.0;
 
-      element = (params.useCanvas) ? dom.canvas : dom.frame;
+      this.element = (params.useCanvas) ? dom.canvas : dom.frame;
 
-      surface = Surface(dom);
-      surface.init();
+      this.surface = Surface(dom);
+      this.surface.init();
 
-      birdSpriteBase = surface.createImageSprite(params.basePath + "fbird-spy2.png", 34, 25, params.scale);
-      birdSpriteSIMD = surface.createImageSprite(params.basePath + "fbird2-spy.png", 34, 25, params.scale);
-      birdSprite     = birdSpriteBase;
+      this.birdSpriteBase = this.surface.createImageSprite(params.basePath + "fbird-spy2.png", 34, 25, params.scale);
+      this.birdSpriteSIMD = this.surface.createImageSprite(params.basePath + "fbird2-spy.png", 34, 25, params.scale);
+      this.birdSprite = (this.useSIMD) ? this.birdSpriteSIMD : this.birdSpriteBase;
 
-      var birdDim = surface.dimOfSprite(birdSpriteBase);
-      birds.init(element.clientHeight - birdDim.height);
+      var birdDim = this.surface.dimOfSprite(this.birdSprite);
+      birds.init(this.element.clientHeight - birdDim.height);
 
-      addBirds(birdSprite, params.initialBirdCount);
+      this.addBirds(this.birdSprite, params.initialBirdCount);
     }
 
-    function start() {
-      if (!animate) {
-        animate = true;
-        lastTime = 0.0;
-        moveAll();
+    this.start = function() {
+      if (!this.animate) {
+        this.animate = true;
+        this.lastTime = 0.0;
+        this.moveAll();
       }
     }
 
-    function stop() {
-      animate = false;
+    this.stop = function() {
+      this.animate = false;
     }
 
-    function close() {
-      stop();
-      removeAllBirds();
+    this.close = function() {
+      this.stop();
+      this.removeAllBirds();
     }
-
-    return {
-      init:  init,
-      setUseSIMD: setUseSIMD,
-      start: start,
-      stop:  stop,
-      close: close
-    };
   };
 
   function URLParamsParser(defaults) {
@@ -596,7 +585,7 @@ var fbird = (function() {
     }
   }
 
-  var animation = Animation();
+  var animator = new Animator();
   var birds = BirdTracker();
   var fpsAccounting = FPSCounter();
 
@@ -614,31 +603,36 @@ var fbird = (function() {
     }).parse(options);
 
     dom = params.self.$;
-    animation.init();
+    animator.init();
     initialized = true;
   }
 
   function close() {
     if (initialized)
-      animation.close();
+      animator.close();
     initialized = false;
   }
 
   function start() {
     if (initialized)
-      animation.start();
+      animator.start();
   }
 
   function stop() {
     if (initialized)
-      animation.stop();
+      animator.stop();
+  }
+
+  function setUseSIMD(use) {
+    animator.setUseSIMD(use);
   }
 
   return {
     init:  init,
     close: close,
     start: start,
-    stop:  stop
+    stop:  stop,
+    setUseSIMD: setUseSIMD
   };
 
 }());
