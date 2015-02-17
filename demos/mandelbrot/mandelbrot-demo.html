@@ -94,17 +94,3 @@
 
   </script>
 </polymer-element>
-      fpsChange: function(e, detail, sender) {
-        this.fpsTotal += detail.value;
-        this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)
-        this.$.fps.textContent = detail.value.toFixed(0);
-      },
-      workerChange: function(e, detail, sender) {
-        this.resetFpsCount();
-        this.workerCount = sender.value;
-        this.$.player.setAttribute("workerCount", this.workerCount);
-      }
-    });
-
-  </script>
-</polymer-element>
