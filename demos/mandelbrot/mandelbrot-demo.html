@@ -43,9 +43,8 @@
           <paper-slider pin snaps min="10" max="100" step="5"
               value="50" on-core-change="{{ maxIterationChange }}"></paper-slider>
         </div>
-
       </div>
-      <mandelbrot-animation vertical layout flex id="player" on-fps-change="{{fpsChange}}"></mandelbrot-animation>
+      <mandelbrot-animation scale=25 vertical layout flex id="player" on-fps-change="{{fpsChange}}"></mandelbrot-animation>
       <div center horizontal justified layout style="color: white; padding: 0px 20px; height: 56px; background-color: #594E58">
           <div>FPS:</div>
           <div id="fps" flex start>0</div>

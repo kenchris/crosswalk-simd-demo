@@ -2,13 +2,14 @@
 
 <link rel="import" href="../../elements/action-toggle-overlay/action-toggle-overlay.html">
 
-<polymer-element name="mandelbrot-animation" attributes="useSIMD workerCount maxIterationCount disabled">
+<polymer-element name="mandelbrot-animation" attributes="useSIMD workerCount maxIterationCount scale disabled">
   <template>
     <style>
       #mandel {
         width: 100%;
         height: 100%;
         display: block;
+        image-rendering: pixelated;
       }
     </style>
     <div id="player" vertical layout flex>
@@ -104,6 +105,7 @@ Polymer('mandelbrot-animation', {
       useSIMD: false,
       workerCount: 1,
       maxIterationCount: 50,
+      scale: 100,
       disabled: false,
     },
     isAnimating: false,
@@ -114,9 +116,14 @@ Polymer('mandelbrot-animation', {
       this.workerPool = new WorkerPool(this.resolvePath("mandelbrot-worker.js"));
 
       var canvas = this.$.mandel;
-      this.width = canvas.width = canvas.parentNode.clientWidth;
-      this.height = canvas.height = canvas.parentNode.clientHeight;
       this.ctx = canvas.getContext("2d");
+
+      var ratio = window.devicePixelRatio / (this.ctx.backingStorePixelRatio || 1);
+      ratio /= 100 / this.scale;
+      console.log(ratio);
+
+      this.width = canvas.width = Math.ceil(canvas.parentNode.clientWidth * ratio);
+      this.height = canvas.height = Math.ceil(canvas.parentNode.clientHeight * ratio);
       this.image_data = this.ctx.getImageData(0, 0, this.width, this.height);
     },
     update: function() {
