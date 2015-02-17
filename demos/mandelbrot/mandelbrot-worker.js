@@ -143,9 +143,9 @@ function drawMandelbrot(params) {
 
     var xf = x0;
     for (var x = 0; x < width; ++x) {
+      var xf4 = SIMD.float32x4(xf, xf, xf, xf);
       var yf = y0;
       for (var y = 0; y < height; y += 4) {
-        var xf4 = SIMD.float32x4(xf, xf, xf, xf);
         var yf4 = SIMD.float32x4(yf, yf + yd, yf + ydx2, yf + ydx3);
         var m4 = mandelx4(xf4, yf4);
         mapColorAndSetPixel(x, y, m4.x);
