@@ -2,7 +2,7 @@
 
 <link rel="import" href="../../elements/action-toggle-overlay/action-toggle-overlay.html">
 
-<polymer-element name="mandelbrot-animation" attributes="useSIMD downscale workerCount disabled">
+<polymer-element name="mandelbrot-animation" attributes="useSIMD workerCount maxIterationCount disabled">
   <template>
     <style>
       #mandel {
@@ -102,13 +102,13 @@ WorkerPool = function(src) {
 Polymer('mandelbrot-animation', {
     publish: {
       useSIMD: false,
-      downscale: true,
       workerCount: 1,
+      maxIterationCount: 50,
       disabled: false,
     },
     isAnimating: false,
     workerCount: 1,
-    maxIterations: 50,
+    maxIterationCount: 50,
     initialized: false,
     init: function() {
       this.workerPool = new WorkerPool(this.resolvePath("mandelbrot-worker.js"));
@@ -186,8 +186,7 @@ Polymer('mandelbrot-animation', {
             yc:             yc,
             scale:          scale,
             use_simd:       self.useSIMD,
-            downscale:      self.downscale,
-            max_iterations: self.maxIterations
+            max_iterations: self.maxIterationCount
           });
         request_count++;
       };
@@ -233,7 +232,7 @@ Polymer('mandelbrot-animation', {
         }
 
         var buffer = new Uint8ClampedArray(e.data.buffer);
-        paintFrame (buffer);
+        paintFrame(buffer);
         frame_count++
 
         if (pending_frames.length > 0) {

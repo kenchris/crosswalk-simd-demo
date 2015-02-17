@@ -9,7 +9,6 @@ var max_iterations;
 var image_buffer;
 var width;
 var heigth;
-var downscale;
 
 function computeFrame(e) {
   if (typeof e.data.terminate !== "undefined") {
@@ -23,12 +22,6 @@ function computeFrame(e) {
 
   width = message.width;
   height = message.height;
-
-  downscale = message.downscale;
-  if (downscale) {
-    width /= 2;
-    height /= 2;
-  }
 
   drawMandelbrot(message);
 
@@ -100,30 +93,16 @@ function mapColorAndSetPixel(x, y, value) {
     b = (rgb >> 16) & 0xff;
   }
 
-  if (!downscale) {
-      var index = 4 * (x + width * y);
-      image_buffer[index]   = r;
-      image_buffer[index + 1] = g;
-      image_buffer[index + 2] = b;
-      image_buffer[index + 3] = 255;
-  } else {
-    for (var i = 0; i < 2; i++) {
-      for (var j = 0; j < 2; j++) {
-        var index = 4 * 2 * (x + 2 * width * y + width * j) + 4 * i;
-        image_buffer[index]   = r;
-        image_buffer[index + 1] = g;
-        image_buffer[index + 2] = b;
-        image_buffer[index + 3] = 255;
-      }
-    }
-  }
+  var index = 4 * (x + width * y);
+  image_buffer[index]   = r;
+  image_buffer[index + 1] = g;
+  image_buffer[index + 2] = b;
+  image_buffer[index + 3] = 255;
 }
 
 function drawMandelbrot(params) {
-  var adjust = params.downscale ? 2 : 1;
-
-  var width = params.width / adjust;
-  var height = params.height / adjust;
+  var width = params.width;
+  var height = params.height;
   var scale = params.scale;
   var use_simd = params.use_simd;
   var xc = params.xc;

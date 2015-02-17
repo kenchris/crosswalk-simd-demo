@@ -29,12 +29,6 @@
               on-change="{{ simdToggleChange }}"></paper-toggle-button>
         </div>
         <div style="height: 20px"></div>
-        <div justified horizontal layout>
-          <div flex>High resolution</div>
-          <paper-toggle-button id="highres_button" class="blue"
-              on-change="{{ highresToggleChange }}"></paper-toggle-button>
-        </div>
-        <div style="height: 20px"></div>
         <div>
           <div center horizontal layout style="padding-bottom: 10px">
             <span>Number of workers</span><span id="counter">{{workerCount}}</span>
@@ -42,6 +36,14 @@
           <paper-slider pin snaps min="1" max="{{maxWorkers}}" step="1"
               value="1" on-core-change="{{ workerChange }}"></paper-slider>
         </div>
+        <div>
+          <div center horizontal layout style="padding-bottom: 10px">
+            <span>Iterations (max)</span><span id="counter">{{maxIterationCount}}</span>
+          </div>
+          <paper-slider pin snaps min="10" max="100" step="5"
+              value="50" on-core-change="{{ maxIterationChange }}"></paper-slider>
+        </div>
+
       </div>
       <mandelbrot-animation vertical layout flex id="player" on-fps-change="{{fpsChange}}"></mandelbrot-animation>
       <div center horizontal justified layout style="color: white; padding: 0px 20px; height: 56px; background-color: #594E58">
@@ -59,6 +61,9 @@
         this.maxWorkers = navigator.hardwareConcurrency;
         this.resetFpsCount();
         this.workerCount = 1;
+        this.maxIterationCount = 50;
+        this.$.player.setAttribute("workerCount", this.workerCount);
+        this.$.player.setAttribute("maxIterationCount", this.maxIterationCount);
       },
       resetFpsCount: function() {
         this.measurements = 0;
@@ -76,14 +81,15 @@
         this.resetFpsCount();
         this.$.player.setAttribute("useSIMD", sender.checked);
       },
-      highresToggleChange: function(e, detail, sender) {
-        this.resetFpsCount();
-        this.$.player.setAttribute("downscale", !sender.checked);
-      },
       fpsChange: function(e, detail, sender) {
         this.fpsTotal += detail.value;
         this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)
         this.$.fps.textContent = detail.value.toFixed(0);
+      },
+      maxIterationChange: function(e, detail, sender) {
+        this.resetFpsCount();
+        this.maxIterationCount = sender.value;
+        this.$.player.setAttribute("maxIterationCount", this.maxIterationCount);
       },
       workerChange: function(e, detail, sender) {
         this.resetFpsCount();
