@@ -1,0 +1,113 @@
+<dom-module id="mandelbrot-demo">
+  <style>
+      :host {
+        display: flex;
+        flex: 1;
+      }
+      #container {
+        flex: 1; 
+        display: flex; 
+        flex-direction: column
+      }
+      paper-slider {
+        width: 100%;
+      }
+      mandelbrot-animation {
+        flex: 1;
+      }
+      #counter, #fps {
+        padding-left: 10px;
+        font-weight: 400;
+        font-size: 18pt;
+        color: var(--accent-color);
+      }
+      #legend {
+        font-size: 10pt;
+      }
+    </style>
+    
+    <template>
+    <div id="container">
+      <div style="padding: 20px">
+        <div style="padding: 15px 0px 0px 0px; display: flex">
+          <span style="flex: 1">SIMD acceleration</span>
+          <paper-toggle-button id="simd_button" class="blue"
+              on-change="simdToggleChange"></paper-toggle-button>
+        </div>
+        <div style="height: 20px"></div>
+        <div>
+          <div style="padding-bottom: 10px">
+            <span>Number of workers</span><span id="counter">{{workerCount}}</span>
+          </div>
+          <paper-slider pin snaps min="1" max="{{maxWorkers}}" step="1"
+              value="1" on-value-change="workerChange"></paper-slider>
+        </div>
+        <div>
+          <div  style="padding-bottom: 10px">
+            <span>Iterations (max)</span><span id="counter">{{maxIterationCount}}</span>
+          </div>
+          <paper-slider pin snaps min="10" max="100" step="5"
+              value="50" on-value-change="maxIterationChange"></paper-slider>
+        </div>
+      </div>
+      <mandelbrot-animation scale=25  id="player" on-fps-change="fpsChange"></mandelbrot-animation>
+      <div style="color: white; padding: 0px 20px; height: 56px; background-color: #594E58; display: flex; align-items: center">
+          <div>FPS:</div>
+          <div id="fps" class="flex">0</div>
+          <div id="legend">(average:<span id="average" style="padding-left: 3px">0</span>)</div>
+      </div>
+    </div>
+    <paper-toast id="error" text="SIMD isn't supported on your system."><paper-toast>
+  </template>
+  </dom-module>
+  
+  <script>
+
+    Polymer({
+      is: 'mandelbrot-demo',
+      
+      properties: {
+        maxWorkers: { type: Number, value: navigator.hardwareConcurrency },
+        workerCount: { type: Number, value: 1 },
+        maxIterationCount: { type: Number, value: 50 }
+      },
+      
+      ready: function() {
+        this.resetFpsCount();
+        Polymer.dom(this.$.player).setAttribute("workerCount", this.workerCount);
+        Polymer.dom(this.$.player).setAttribute("maxIterationCount", this.maxIterationCount);
+      },
+      resetFpsCount: function() {
+        this.measurements = 0;
+        this.fpsTotal = 0;
+      },
+      suspendedChange: function(suspended) {
+        this.$.player.disabled = suspended;
+      },
+      simdToggleChange: function(e, detail, sender) {
+        if (e.target.checked && typeof SIMD === "undefined") {
+          this.async(function() { this.checked = false; }.bind(e.target), 200);
+          this.$.error.show();
+          return;
+        }
+        this.resetFpsCount();
+        this.$.player.useSIMD = e.target.checked;
+      },
+      fpsChange: function(e, detail, sender) {
+        this.fpsTotal += detail.value;
+        this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)
+        this.$.fps.textContent = detail.value.toFixed(0);
+      },
+      maxIterationChange: function(e, detail, sender) {
+        this.resetFpsCount();
+        this.maxIterationCount = e.target.value;
+        this.$.player.maxIterationCount = this.maxIterationCount;
+      },
+      workerChange: function(e, detail, sender) {
+        this.resetFpsCount();
+        this.workerCount = e.target.value;
+        this.$.player.workerCount = this.workerCount;
+      }
+    });
+
+  </script>

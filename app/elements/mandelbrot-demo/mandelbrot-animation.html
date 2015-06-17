@@ -1,0 +1,289 @@
+<dom-module id="mandelbrot-animation">
+  <style>
+      #mandel {
+        width: 100%;
+        height: 100%;
+        display: block;
+        image-rendering: pixelated;
+      }
+  </style>
+    
+  <template>
+    <div id="player" vertical layout flex>
+      <action-toggle-overlay vertical layout flex id="control" on-change="onActionChange">
+        <canvas id="mandel"></canvas>
+      </action-toggle-overlay>
+    </div>
+  </template>
+
+<script>
+(function() {    
+
+// Mandelbrot using SIMD and web workers
+// Author: Peter Jensen, Intel Corporation
+// Polymerized: Kenneth Christiansen, Intel Corporation
+
+// Web Worker management
+WorkerPool = function(src) {
+
+  // private
+
+  var activeWorkers = [];
+  var activeWorkersCount = 0;
+
+  function MandelbrotWorker(handler, bufferSize) {
+    this.worker = new Worker(src);
+    this.buffer  = new ArrayBuffer(bufferSize);
+    this.worker.addEventListener('message', handler, false);
+    this.postMessage = function(message, transferList) {
+      this.worker.postMessage(message, transferList);
+    }
+  }
+
+  // public
+
+  function addWorker(handler, bufferSize) {
+    activeWorkers[activeWorkersCount] = new MandelbrotWorker(handler, bufferSize);
+    activeWorkersCount++;
+    return activeWorkersCount - 1;
+  }
+
+  function sendRequest(index, message) {
+    var worker = activeWorkers[index];
+    worker.postMessage(
+      {
+        message: message,
+        worker_index: index,
+        buffer: worker.buffer
+      }, [worker.buffer]);
+  }
+
+  function restoreBuffer(index, buffer) {
+    var worker = activeWorkers[index];
+    if (worker)
+      worker.buffer = buffer;
+  }
+
+  function terminateLastWorker() {
+    var lastWorker = activeWorkers[activeWorkersCount - 1];
+    lastWorker.postMessage({terminate: true});
+    activeWorkersCount--;
+  }
+
+  function terminateAllWorkers() {
+    while (activeWorkersCount > 0)
+      terminateLastWorker();
+  }
+
+  function numberOfWorkers() {
+    return activeWorkersCount;
+  }
+
+  function bufferOf(index) {
+    return activeWorkers[index].buffer;
+  }
+
+  function workerIsActive(index) {
+    return index < activeWorkersCount;
+  }
+
+  return {
+    addWorker:           addWorker,
+    sendRequest:         sendRequest,
+    restoreBuffer:       restoreBuffer,
+    terminateLastWorker: terminateLastWorker,
+    terminateAllWorkers: terminateAllWorkers,
+    numberOfWorkers:     numberOfWorkers,
+    bufferOf:            bufferOf,
+    workerIsActive:      workerIsActive
+  };
+};
+
+Polymer({
+  is: 'mandelbrot-animation',
+ 
+  properties: {
+    useSIMD: { type: Boolean, value: false },
+    disabled: { type: Boolean, value: false },
+    workerCount: { type: Number, value: 1 },
+    maxIterationCount: { type: Number, value: 50 },
+    scale: { type: Number, value: 100 }
+  },
+  isAnimating: false,
+  initialized: false,
+  init: function() {
+      this.initialized = true;
+      this.workerPool = new WorkerPool(this.resolveUrl("mandelbrot-worker.js"));
+
+      var canvas = this.$.mandel;
+      this.ctx = canvas.getContext("2d");
+
+      var ratio = window.devicePixelRatio / (this.ctx.backingStorePixelRatio || 1);
+      ratio /= 100 / this.scale;
+
+      this.width = this.$.control.clientWidth;
+      this.height = this.$.control.clientHeight;
+
+      this.width = canvas.width = Math.ceil(this.width * ratio);
+      this.height = canvas.height = Math.ceil(this.height * ratio);
+      this.image_data = this.ctx.getImageData(0, 0, this.width, this.height);
+    },
+    update: function() {
+      this.ctx.putImageData(this.image_data, 0, 0);
+    },
+    updateFromImageData: function(image_data) {
+      this.image_data.data.set(image_data);
+      this.ctx.putImageData(this.image_data, 0, 0);
+    },
+    disabledChanged: function() {
+      this.$.control.disabled = this.disabled;
+    },
+    onActionChange: function() {
+      if (!this.initialized) {
+        if (!this.$.mandel.clientHeight)
+          return;
+        this.init();
+      }
+
+      this.isAnimating = this.$.control.checked;
+      if (!this.isAnimating) {
+        this.fire("fps-change", { value: 0 });
+        return;
+      }
+
+      var scale_start = 1.0;
+      var scale_end   = 0.0005;
+      var xc_start    = -0.5;
+      var yc_start    = 0.0;
+      var xc_end      = 0.0;
+      var yc_end      = 0.75;
+      var steps       = 200.0;
+      var scale_step  = (scale_end - scale_start) / steps;
+      var xc_step     = (xc_end - xc_start) / steps;
+      var yc_step     = (yc_end - yc_start) / steps;
+      var scale       = scale_start;
+      var xc          = xc_start;
+      var yc          = yc_start;
+      var frame_count   = 0; // Number of frames painted to the canvas.
+      var request_count = 0; // Number of frames requested from workers.
+      var now         = performance.now();
+      var width       = this.width;
+      var height      = this.height;
+      var bufferSize  = width * height * 4;
+      var pending_frames = [];
+
+      self = this;
+
+      // Look for a frame with 'frame_index' in the pending frames.
+      function findFrame(frame_index) {
+        for (var i = 0, n = pending_frames.length; i < n; ++i) {
+          if (pending_frames[i].frame_index === frame_index) {
+            return i;
+          }
+        }
+        return false;
+      }
+
+      // Send a request to a worker to compute a frame.
+      function requestFrame(index) {
+        self.workerPool.sendRequest(
+          index,
+          {
+            request_count:  request_count,
+            width:          width,
+            height:         height,
+            xc:             xc,
+            yc:             yc,
+            scale:          scale,
+            use_simd:       self.useSIMD,
+            max_iterations: self.maxIterationCount
+          });
+        request_count++;
+      };
+
+      // Send the pixels to the canvas, and update the FPS measurement.
+      function paintFrame(buffer) {
+        self.updateFromImageData(buffer);
+        if (frame_count > 0 && ((frame_count % 10) | 0) === 0) {
+          var t = performance.now();
+          self.fire("fps-change", { value: 10000 / (t - now) });
+          now = t;
+        }
+      }
+
+      // Called when a worker has computed a frame.
+      function updateFrame(e) {
+        var worker_index  = e.data.worker_index;
+        var request_count = e.data.message.request_count;
+
+        if (!self.isAnimating) {
+          var buffer = new Uint8ClampedArray(e.data.buffer);
+          paintFrame(buffer);
+          self.workerPool.terminateAllWorkers();
+          return;
+        }
+
+        self.workerPool.restoreBuffer(worker_index, e.data.buffer);
+
+        if (self.workerPool.numberOfWorkers() < self.workerCount) {
+          var worker = self.workerPool.addWorker(updateFrame, bufferSize);
+          requestFrame(worker);
+          advanceFrame();
+        }
+
+        if (self.workerPool.numberOfWorkers() > self.workerCount) {
+          self.workerPool.terminateLastWorker();
+        }
+
+        if (request_count !== frame_count) {
+          // Frame came early, save it for later and do nothing now
+          pending_frames.push({worker_index: worker_index, frame_index: request_count});
+          return;
+        }
+
+        var buffer = new Uint8ClampedArray(e.data.buffer);
+        paintFrame(buffer);
+        frame_count++
+
+        if (pending_frames.length > 0) {
+          // There are delayed frames queued up.  Process them.
+          var frame;
+          while ((frame = findFrame(frame_count)) !== false) {
+            var windex = pending_frames[frame].worker_index;
+            pending_frames.splice(frame, 1); // Remove the frame from the pending_frames
+            var buffer = new Uint8ClampedArray(self.workerPool.bufferOf(windex));
+            paintFrame(buffer);
+            frame_count++;
+
+            if (self.workerPool.workerIsActive(windex)) {
+              requestFrame(windex);
+              advanceFrame();
+            }
+          }
+        }
+
+        if (self.workerPool.workerIsActive(e.data.worker_index)) {
+          requestFrame(e.data.worker_index);
+          advanceFrame();
+        }
+      }
+
+      function advanceFrame() {
+        if (scale < scale_end || scale > scale_start) {
+          scale_step = -scale_step;
+          xc_step = -xc_step;
+          yc_step = -yc_step;
+        }
+        scale += scale_step;
+        xc += xc_step;
+        yc += yc_step;
+      }
+
+      self.workerPool.addWorker(updateFrame, bufferSize);
+      requestFrame(0);
+      advanceFrame();
+    }
+  });
+  
+})();
+</script>
