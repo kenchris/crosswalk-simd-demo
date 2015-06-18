@@ -20,6 +20,7 @@ var merge = require('merge-stream');
 var path = require('path');
 var fs = require('fs');
 var glob = require('glob');
+var babel = require('gulp-babel');
 
 var AUTOPREFIXER_BROWSERS = [
   'ie >= 10',
@@ -33,6 +34,14 @@ var AUTOPREFIXER_BROWSERS = [
   'bb >= 10'
 ];
 
+var babelTask = function (jsPath, srcs) {
+  return gulp.src(srcs.map(function(src) {
+      return path.join('app', jsPath, src);
+    }))
+    .pipe(babel())
+    .pipe(gulp.dest('dist/' + jsPath));
+};
+
 var styleTask = function (stylesPath, srcs) {
   return gulp.src(srcs.map(function(src) {
       return path.join('app', stylesPath, src);
@@ -44,6 +53,10 @@ var styleTask = function (stylesPath, srcs) {
     .pipe(gulp.dest('dist/' + stylesPath))
     .pipe($.size({title: stylesPath}));
 };
+
+gulp.task('transcode', function () {
+  return babelTask('elements', ['**/*.js']);
+});
 
 // Compile and Automatically Prefix Stylesheets
 gulp.task('styles', function () {
@@ -94,7 +107,7 @@ gulp.task('copy', function () {
     'bower_components/**/*'
   ]).pipe(gulp.dest('dist/bower_components'));
 
-  var elements = gulp.src(['app/elements/**/*.html'])
+  var elements = gulp.src(['app/elements/**/*.{html,js}'])
     .pipe(gulp.dest('dist/elements'));
 
   var swBootstrap = gulp.src(['bower_components/platinum-sw/bootstrap/*.js'])
@@ -179,7 +192,7 @@ gulp.task('precache', function (callback) {
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 // Watch Files For Changes & Reload
-gulp.task('serve', ['styles', 'elements', 'images'], function () {
+gulp.task('serve', ['styles', 'elements', 'images', 'transcode'], function () {
   browserSync({
     notify: false,
     // Run as an https by uncommenting 'https: true'
@@ -197,7 +210,7 @@ gulp.task('serve', ['styles', 'elements', 'images'], function () {
   gulp.watch(['app/**/*.html'], reload);
   gulp.watch(['app/styles/**/*.css'], ['styles', reload]);
   gulp.watch(['app/elements/**/*.css'], ['elements', reload]);
-  gulp.watch(['app/{scripts,elements}/**/*.js'], ['jshint']);
+  gulp.watch(['app/{scripts,elements}/**/*.js'], ['jshint', 'transcode', reload]);
   gulp.watch(['app/images/**/*'], reload);
 });
 

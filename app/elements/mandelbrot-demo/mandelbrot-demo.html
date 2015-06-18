@@ -59,55 +59,6 @@
     </div>
     <paper-toast id="error" text="SIMD isn't supported on your system."><paper-toast>
   </template>
-  </dom-module>
+</dom-module>
   
-  <script>
-
-    Polymer({
-      is: 'mandelbrot-demo',
-      
-      properties: {
-        maxWorkers: { type: Number, value: navigator.hardwareConcurrency },
-        workerCount: { type: Number, value: 1 },
-        maxIterationCount: { type: Number, value: 50 }
-      },
-      
-      ready: function() {
-        this.resetFpsCount();
-        Polymer.dom(this.$.player).setAttribute("workerCount", this.workerCount);
-        Polymer.dom(this.$.player).setAttribute("maxIterationCount", this.maxIterationCount);
-      },
-      resetFpsCount: function() {
-        this.measurements = 0;
-        this.fpsTotal = 0;
-      },
-      suspendedChange: function(suspended) {
-        this.$.player.disabled = suspended;
-      },
-      simdToggleChange: function(e, detail, sender) {
-        if (e.target.checked && typeof SIMD === "undefined") {
-          this.async(function() { this.checked = false; }.bind(e.target), 200);
-          this.$.error.show();
-          return;
-        }
-        this.resetFpsCount();
-        this.$.player.useSIMD = e.target.checked;
-      },
-      fpsChange: function(e, detail, sender) {
-        this.fpsTotal += detail.value;
-        this.$.average.textContent = (this.fpsTotal / ++this.measurements).toFixed(0)
-        this.$.fps.textContent = detail.value.toFixed(0);
-      },
-      maxIterationChange: function(e, detail, sender) {
-        this.resetFpsCount();
-        this.maxIterationCount = e.target.value;
-        this.$.player.maxIterationCount = this.maxIterationCount;
-      },
-      workerChange: function(e, detail, sender) {
-        this.resetFpsCount();
-        this.workerCount = e.target.value;
-        this.$.player.workerCount = this.workerCount;
-      }
-    });
-
-  </script>
+<script src="mandelbrot-demo.js"></script>

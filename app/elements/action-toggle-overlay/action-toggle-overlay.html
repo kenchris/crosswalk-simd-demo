@@ -35,42 +35,5 @@
     </div>
   </template>
 </dom-module>
-  <script>
-  (function() {
-    Polymer({
-      is: 'action-toggle-overlay',
 
-      properties: {
-        checked: {
-          type: Boolean,
-          value: false,
-          observer: 'checkedChanged'
-        },
-        disabled: {
-          type: Boolean,
-          value: false,
-          observer: 'disabledChanged'
-        }
-      },
-      disabledChanged: function(newValue, oldValue) {
-        if (!this.disabled)
-          return;
-        this.checked = false;
-      },
-      tapAction: function(ev) {
-        ev.stopPropagation();
-        if (this.disabled)
-          return;
-
-        this.checked = !this.checked;
-      },
-      checkedChanged: function(newValue, oldValue) {
-        if (this.checked)
-          Polymer.dom(this.$.overlay).classList.add("checked");
-        else
-          Polymer.dom(this.$.overlay).classList.remove("checked");
-        this.fire('change');
-      }
-    });
-  })();
-  </script>
+<script src="action-toggle-overlay.js"></script>
