@@ -1,10 +1,8 @@
 <dom-module id="action-toggle-overlay">
     <style>
       :host {
-        width: auto;
-        height: auto;
-        display: block;
-        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
       #overlay::before {
@@ -30,7 +28,7 @@
     </style>
     
   <template>
-    <div flex id="overlay" on-tap="tapAction">
+    <div class="vertical layout flex" id="overlay" on-tap="tapAction">
       <content></content>
     </div>
   </template>

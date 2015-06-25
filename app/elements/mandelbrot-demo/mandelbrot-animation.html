@@ -1,17 +1,18 @@
 <dom-module id="mandelbrot-animation">
   <style>
-      #mandel {
-        width: 100%;
-        height: 100%;
-        display: block;
-        image-rendering: pixelated;
-      }
+    :host {
+      display: flex;
+      flex: 1;
+    }
+    #mandel {
+      image-rendering: pixelated;
+    }
   </style>
     
   <template>
-    <div id="player" vertical layout flex>
-      <action-toggle-overlay vertical layout flex id="control" on-change="onActionChange">
-        <canvas id="mandel"></canvas>
+    <div id="player" class="vertical layout flex">
+      <action-toggle-overlay class="vertical layout flex" id="control" on-change="onActionChange">
+        <canvas class="flex" id="mandel"></canvas>
       </action-toggle-overlay>
     </div>
   </template>

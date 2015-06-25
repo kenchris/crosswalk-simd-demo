@@ -3,13 +3,19 @@
       :host {
         display: flex;
         flex: 1;
+        flex-direction: column;
       }
-      #container {
-        flex: 1; 
-        display: flex; 
-        flex-direction: column
+      #settings {
+        padding: 20px; 
+      }
+      #settings .padding-before {
+        padding-top: 10px; 
+      }
+      #settings .padding-after {
+        padding-bottom: 20px;
       }
       paper-slider {
+        padding: 5px 0px 0px 0px;
         width: 100%;
       }
       mandelbrot-animation {
@@ -22,41 +28,57 @@
         color: var(--accent-color);
       }
       #legend {
-        font-size: 10pt;
+        font-size: 12pt;
+      }
+      #status {
+        color: white;
+        background-color: #594E58;
+        height: 56px;
+        padding: 0px 20px 
+      }
+      #status .value {
+        padding-left: 10px;
+        font-weight: 400;
+        font-size: 18pt;
+        color: var(--accent-color);
       }
     </style>
     
     <template>
-    <div id="container">
-      <div style="padding: 20px">
-        <div style="padding: 15px 0px 0px 0px; display: flex">
-          <span style="flex: 1">SIMD acceleration</span>
-          <paper-toggle-button id="simd_button" class="blue"
-              on-change="simdToggleChange"></paper-toggle-button>
-        </div>
-        <div style="height: 20px"></div>
-        <div>
-          <div style="padding-bottom: 10px">
-            <span>Number of workers</span><span id="counter">{{workerCount}}</span>
-          </div>
-          <paper-slider pin snaps min="1" max="{{maxWorkers}}" step="1"
-              value="1" on-value-change="workerChange"></paper-slider>
-        </div>
-        <div>
-          <div  style="padding-bottom: 10px">
-            <span>Iterations (max)</span><span id="counter">{{maxIterationCount}}</span>
-          </div>
-          <paper-slider pin snaps min="10" max="100" step="5"
-              value="50" on-value-change="maxIterationChange"></paper-slider>
-        </div>
+
+    <div id="settings" class="layout vertical">
+        
+      <div class="item layout horizontal padding-before padding-after">
+        <span class="flex">SIMD acceleration</span>
+        <paper-toggle-button id="simd_button" class="blue"
+            on-change="simdToggleChange"></paper-toggle-button>
       </div>
-      <mandelbrot-animation scale=25  id="player" on-fps-change="fpsChange"></mandelbrot-animation>
-      <div style="color: white; padding: 0px 20px; height: 56px; background-color: #594E58; display: flex; align-items: center">
-          <div>FPS:</div>
-          <div id="fps" class="flex">0</div>
-          <div id="legend">(average:<span id="average" style="padding-left: 3px">0</span>)</div>
+        
+      <div class="item">
+        <span>Number of workers</span>
+        <span id="counter">{{workerCount}}</span>
+        <paper-slider pin snaps min="1" max="{{maxWorkers}}" step="1"
+            value="1" on-value-change="workerChange"></paper-slider>
+      </div>
+        
+      <div class="item">
+        <span>Iterations (max)</span>
+        <span id="counter">{{maxIterationCount}}</span>
+        <paper-slider pin snaps min="10" max="100" step="5"
+            value="50" on-value-change="maxIterationChange"></paper-slider>
+      </div>
+        
+    </div>
+      
+    <mandelbrot-animation scale=25  id="player" on-fps-change="fpsChange" class="flex"></mandelbrot-animation>
+    
+    <div id="status" class="layout horizontal center">
+      <div>FPS:</div> <div id="fps" class="value flex">0</div>
+      <div id="legend">(average:
+        <span id="average" style="padding-left: 3px">0</span>)
       </div>
     </div>
+
     <paper-toast id="error" text="SIMD isn't supported on your system."><paper-toast>
   </template>
 </dom-module>
