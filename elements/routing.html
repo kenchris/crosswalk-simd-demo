@@ -21,11 +21,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       app.route = 'mandelbrot';
     });
 
-    page('/mandelbrot', function () {
+    page('/mandelbrot', next, function () {
       app.route = 'mandelbrot';
     });
 
-    page('/birds', function () {
+    page('/birds', next, function () {
       app.route = 'birds';
     });
 
