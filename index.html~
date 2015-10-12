@@ -63,17 +63,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         <!-- Drawer Content -->
           <paper-menu class="list" attr-for-selected="data-route" selected="{{route}}" on-iron-select="onMenuSelect">
-              <a data-route="mandelbrot" href="./mandelbrot">
+              <a data-route="mandelbrot" href="/mandelbrot">
                 <iron-icon icon="home"></iron-icon>
                 <span>Mandelbrot</span>
               </a>
 
-              <a data-route="birds" href="./birds">
+              <a data-route="birds" href="/birds">
                 <iron-icon icon="hardware:toys"></iron-icon>
                 <span>Flocking birds</span>
               </a>
 
-              <a data-route="contact" href="./contact">
+              <a href="https://www.crosswalk-project.org">
                 <iron-icon icon="mail"></iron-icon>
                 <span>Contact</span>
               </a>
