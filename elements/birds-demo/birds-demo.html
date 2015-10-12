@@ -1,0 +1,52 @@
+<dom-module id="birds-demo">
+  <style>
+     :host {
+       display: flex;
+       flex: 1;
+       flex-direction: column;
+     }
+      #frame {
+        background: url(bg-tile.png);
+      }
+      #settings {
+        padding: 30px 20px;
+      }
+      #status {
+        color: white;
+        background-color: #594E58;
+        height: 56px;
+        padding: 0px 20px 
+      }
+      #status .value {
+        padding-left: 10px;
+        font-weight: 400;
+        font-size: 18pt;
+        color: var(--accent-color);
+      }
+  </style>
+  <template>
+    
+    <div id="settings">
+      <div class="justified horizontal layout">
+        <span class="flex">SIMD acceleration</span>
+        <paper-toggle-button id="simd_button" class="blue"
+            on-change="simdToggleChange"></paper-toggle-button>
+      </div>
+    </div>
+      
+    <action-toggle-overlay id="player" on-change="onActionChange" class="flex">
+      <div id="frame" class="flex">
+        <canvas id="canvas"></canvas>
+      </div>
+    </action-toggle-overlay>
+      
+    <div id="status" class="layout horizontal center">
+       <div>FPS: </div> <div id="fps" class="flex value">0</div>
+       <div>No. birds: </div> <div id="birds" class="value">0</div>
+    </div>
+    
+    <paper-toast id="error" text="SIMD isn't supported on your system."></paper-toast>
+  </template>
+</dom-module>
+  
+<script src="birds-demo.js"></script>

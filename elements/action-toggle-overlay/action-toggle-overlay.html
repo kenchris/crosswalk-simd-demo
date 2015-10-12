@@ -1,0 +1,37 @@
+<dom-module id="action-toggle-overlay">
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #overlay::before {
+        background: #000 url("play-button.svg") no-repeat center center;
+        background-size: 72px 72px;
+        content: '';
+        bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        opacity: .5;
+        position:absolute;
+        transition: opacity .2s cubic-bezier(.4,0,.2,1)
+      }
+      #overlay.checked::before {
+        opacity: 0;
+      }
+      #overlay {
+        cursor:pointer;
+        position:relative;
+        touch-action: manipulation;
+      }
+    </style>
+    
+  <template>
+    <div class="vertical layout flex" id="overlay" on-tap="tapAction">
+      <content></content>
+    </div>
+  </template>
+</dom-module>
+
+<script src="action-toggle-overlay.js"></script>

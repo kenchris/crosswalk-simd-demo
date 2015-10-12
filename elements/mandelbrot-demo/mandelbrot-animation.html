@@ -1,0 +1,20 @@
+<dom-module id="mandelbrot-animation">
+  <style>
+    :host {
+      display: flex;
+      flex: 1;
+    }
+    #mandel {
+      image-rendering: pixelated;
+    }
+  </style>
+    
+  <template>
+    <div id="player" class="vertical layout flex">
+      <action-toggle-overlay class="vertical layout flex" id="control" on-change="onActionChange">
+        <canvas class="flex" id="mandel"></canvas>
+      </action-toggle-overlay>
+    </div>
+  </template>
+
+<script src="mandelbrot-animation.js"></script>
