@@ -62,7 +62,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </paper-toolbar>
 
         <!-- Drawer Content -->
-          <paper-menu class="list" attr-for-selected="data-route" selected="{{route}}" on-iron-select="onMenuSelect">
+          <paper-menu class="list" attr-for-selected="data-route" selected="[[route]]" on-iron-select="onMenuSelect">
               <a data-route="mandelbrot" href="/mandelbrot">
                 <iron-icon icon="home"></iron-icon>
                 <span>Mandelbrot</span>
