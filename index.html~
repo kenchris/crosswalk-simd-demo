@@ -91,7 +91,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </span>
         </paper-toolbar>
         <div class="content fit" style="display:flex; flex-direction: column">
-          <paper-tabs attr-for-selected="data-route" selected="{{route}}">
+          <paper-tabs attr-for-selected="data-route" selected="[[route]]">
             <paper-tab data-route="mandelbrot">MANDELBROT</paper-tab>
             <paper-tab data-route="birds">FLOCKING BIRDS</paper-tab>
           </paper-tabs>
